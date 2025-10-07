@@ -10,3 +10,4 @@ instance/
 uploads/
 data/
 .coverage
+docs/build/

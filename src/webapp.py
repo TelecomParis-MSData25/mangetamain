@@ -1,3 +1,28 @@
+"""
+Application Streamlit d'analyse de l'effort culinaire et de la popularité des recettes.
+
+Cette application permet d'explorer la relation entre la complexité des recettes
+(effort culinaire) et leur popularité auprès des utilisateurs à travers des
+visualisations interactives et des analyses statistiques.
+
+Modules requis:
+    - streamlit: Interface utilisateur web
+    - pandas: Manipulation des données
+    - numpy: Calculs numériques
+    - plotly.express: Visualisations interactives
+    - pathlib: Gestion des chemins de fichiers
+
+Exemple:
+    Pour lancer l'application::
+
+        $ streamlit run src/webapp.py
+
+Note:
+    L'application génère des données simulées pour la démonstration.
+    Dans un environnement de production, ces données seraient chargées
+    depuis une base de données ou des fichiers de données réels.
+"""
+
 from pathlib import Path
 
 import streamlit as st
@@ -34,7 +59,41 @@ st.markdown(
 # Génération de données simulées pour la démonstration
 @st.cache_data
 def generate_sample_data(n_recipes=1000):
-    """Génère des données simulées pour la démonstration"""
+    """
+    Génère des données simulées pour la démonstration de l'application.
+    
+    Cette fonction crée un jeu de données artificiel qui simule des recettes
+    avec leurs caractéristiques d'effort culinaire et de popularité.
+    
+    Args:
+        n_recipes (int, optional): Nombre de recettes à générer. Par défaut 1000.
+    
+    Returns:
+        pandas.DataFrame: DataFrame contenant les colonnes suivantes:
+            - recipe_id (int): Identifiant unique de la recette
+            - n_ingredients (int): Nombre d'ingrédients (3-18)
+            - n_steps (int): Nombre d'étapes de préparation (2-22)
+            - minutes (float): Temps de préparation en minutes
+            - log_minutes (float): Logarithme naturel du temps de préparation
+            - effort_score (float): Score composite d'effort culinaire (0-1)
+            - avg_rating (float): Note moyenne de la recette (1-5)
+            - n_ratings (int): Nombre total de notes reçues
+            - n_reviews (int): Nombre de commentaires
+            - age_months (float): Âge de la recette en mois
+            - interactions_per_month (float): Interactions moyennes par mois
+    
+    Note:
+        La fonction utilise numpy.random.seed(42) pour assurer la reproductibilité
+        des données générées. Les variables de popularité sont corrélées négativement
+        avec l'effort culinaire pour simuler un comportement réaliste.
+    
+    Example:
+        >>> data = generate_sample_data(500)
+        >>> print(data.shape)
+        (500, 11)
+        >>> print(data['effort_score'].mean())
+        0.33...
+    """
     np.random.seed(42)
     
     # Variables d'effort culinaire
