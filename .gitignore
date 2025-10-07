@@ -11,3 +11,8 @@ uploads/
 data/
 .coverage
 docs/build/
+.ipynb_checkpoints/
+*.csv
+*.pkl
+*.parquet
+*.zip
