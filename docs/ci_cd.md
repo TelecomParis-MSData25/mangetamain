@@ -8,6 +8,7 @@ Ce document décrit l’architecture d’intégration et déploiement continus d
 - **Gestion des dépendances** : [uv](https://github.com/astral-sh/uv) synchronise l’environnement à partir de `pyproject.toml` et `uv.lock`.
 - **Documentation** : la doc Sphinx est compilée depuis `docs/source` et publiée sur GitHub Pages.
 - **Conteneurisation** : l’image Streamlit est construite à partir du `Dockerfile` et poussée sur GitHub Container Registry (GHCR).
+- **Données** : le dataset Food.com est téléchargé à la volée via le Kaggle CLI (`scripts/download_dataset.sh`) avant les tests d’intégration.
 
 ## Workflows disponibles
 
@@ -20,10 +21,12 @@ Ce document décrit l’architecture d’intégration et déploiement continus d
 ### `ci.yml`
 
 - **PR Checks** : `uv sync --dev`, exécution de `pytest` (rapport XML + couverture) et compilation Sphinx.
+- **Dataset Kaggle** : installation du Kaggle CLI, création de `~/.kaggle/kaggle.json` (à partir des secrets) puis exécution de `scripts/download_dataset.sh` qui télécharge `RAW_recipes.csv` dans `data/`.
 - **Push Pipeline** : tests avec couverture minimale (80 %), artefacts (`htmlcov/`, `coverage.xml`, `pytest-report.xml`).
 - **Documentation** : build Sphinx (HTML) puis déploiement via `peaceiris/actions-gh-pages@v3`.
 - **Docker** : build multi-arch (`linux/amd64`, `linux/arm64`) avec `docker/build-push-action@v5` et publication sur GHCR (`ghcr.io/<owner>/<repo>`).
 - **Sécurité** : scan Trivy du workspace et export en SARIF dans l’onglet **Security** de GitHub.
+- **Dockerfile** : pendant la construction de l’image, `uv run pip install kaggle && bash scripts/download_dataset.sh` télécharge les données si les build args `KAGGLE_USERNAME` / `KAGGLE_KEY` sont fournis (`docker build --build-arg KAGGLE_USERNAME=... --build-arg KAGGLE_KEY=...`).
 
 ### `dependencies.yml`
 
@@ -51,6 +54,7 @@ Ce document décrit l’architecture d’intégration et déploiement continus d
 |-------|-----|-------------|-------------|
 | GHCR (auth par défaut) | `GITHUB_TOKEN` | Automatique | Permissions “read/write” nécessaires. |
 | Déploiement externe (ex. Render) | `RENDER_SERVICE_ID`, `RENDER_API_KEY` | `Settings > Secrets and variables > Actions` | Ajouter lors de l’intégration d’un job de déploiement. |
+| Accès Kaggle | `KAGGLE_USERNAME`, `KAGGLE_KEY` | `Settings > Secrets and variables > Actions` | Requis pour télécharger les données Food.com. |
 
 ## Vérifications locales recommandées
 
@@ -76,3 +80,12 @@ uv run streamlit run src/webapp.py  # Optionnel pour test manuel
 ---
 
 Pour toute modification de pipeline, mettre à jour les workflows correspondants et ajuster ce document afin de conserver la documentation alignée avec l’infrastructure réelle.
+Pour un téléchargement manuel des données :
+
+```bash
+export KAGGLE_USERNAME=...
+export KAGGLE_KEY=...
+uv run pip install kaggle  # ou pip install kaggle
+bash scripts/download_dataset.sh
+```
+- Pour inclure les données dans l’image Docker : `docker build --build-arg KAGGLE_USERNAME=... --build-arg KAGGLE_KEY=... -t mangetamain .`
