@@ -11,3 +11,10 @@ uploads/
 data/
 .coverage
 docs/build/
+.ipynb_checkpoints/
+*.csv
+*.parquet
+*.zip
+*.xlsx
+.kaggle/
+kaggle.json
