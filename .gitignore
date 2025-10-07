@@ -8,3 +8,10 @@ instance/
 *.sqlite3
 *.log
 uploads/
+data/
+.coverage
+docs/build/
+.ipynb_checkpoints/
+*.csv
+*.parquet
+*.zip
