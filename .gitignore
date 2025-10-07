@@ -13,6 +13,7 @@ data/
 docs/build/
 .ipynb_checkpoints/
 *.csv
+*.pkl
 *.parquet
 *.zip
 *.xlsx
