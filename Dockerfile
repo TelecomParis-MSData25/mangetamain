@@ -1,5 +1,5 @@
 # Use the official Python image with the required interpreter version
-FROM python:3.12-slim AS base
+FROM python:3.13-slim AS base
 
 # Configure Python for container usage and ensure uv creates copy-based venvs
 ENV PYTHONUNBUFFERED=1 \
