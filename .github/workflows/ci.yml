@@ -2,9 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: ["**"]
   pull_request:
-    branches: ["main", "develop"]
+    branches: ["**"]
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: "3.12"
