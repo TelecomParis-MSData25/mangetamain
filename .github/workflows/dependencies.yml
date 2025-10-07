@@ -2,12 +2,15 @@ name: Dependencies
 
 on:
   schedule:
-    - cron: "0 9 * * 1"
+    - cron: "0 9 * * 1" # Every Monday at 09:00 UTC
   workflow_dispatch:
 
 jobs:
   update-dependencies:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

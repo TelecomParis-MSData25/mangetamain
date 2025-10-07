@@ -55,6 +55,7 @@ Ce document décrit l’architecture d’intégration et déploiement continus d
 | GHCR (auth par défaut) | `GITHUB_TOKEN` | Automatique | Permissions “read/write” nécessaires. |
 | Déploiement externe (ex. Render) | `RENDER_SERVICE_ID`, `RENDER_API_KEY` | `Settings > Secrets and variables > Actions` | Ajouter lors de l’intégration d’un job de déploiement. |
 | Accès Kaggle | `KAGGLE_USERNAME`, `KAGGLE_KEY` | `Settings > Secrets and variables > Actions` | Requis pour télécharger les données Food.com. |
+| Pull Request package updates (Dependabot) | N/A | `Settings > Code security and analysis > Dependabot` | Active les PR automatiques pour pip/GitHub Actions/Docker (`.github/dependabot.yml`). |
 
 ## Vérifications locales recommandées
 
@@ -89,3 +90,4 @@ uv run pip install kaggle  # ou pip install kaggle
 bash scripts/download_dataset.sh
 ```
 - Pour inclure les données dans l’image Docker : `docker build --build-arg KAGGLE_USERNAME=... --build-arg KAGGLE_KEY=... -t mangetamain .`
+- Les dépendances sont aussi surveillées par un workflow manuel (`dependencies.yml`) et par Dependabot (`.github/dependabot.yml`). Ajuste la fréquence ou les reviewers selon les besoins de l’équipe.
