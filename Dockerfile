@@ -6,9 +6,9 @@ ENV PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     DEBIAN_FRONTEND=noninteractive
 
-# Install system packages needed for building scientific Python wheels and fetching uv
+# Install system packages needed for building scientific Python wheels, downloading archives, and fetching uv
 RUN apt-get update && \
-    apt-get install --no-install-recommends -y build-essential curl && \
+    apt-get install --no-install-recommends -y build-essential curl unzip && \
     rm -rf /var/lib/apt/lists/*
 
 # Install the uv package manager (placed in /usr/local/bin for global usage)
@@ -21,6 +21,11 @@ RUN if ! command -v python >/dev/null 2>&1; then ln -s /usr/local/bin/python3 /u
 # Work inside the application directory
 WORKDIR /app
 
+ARG KAGGLE_USERNAME=""
+ARG KAGGLE_KEY=""
+ENV KAGGLE_USERNAME=${KAGGLE_USERNAME} \
+    KAGGLE_KEY=${KAGGLE_KEY}
+
 # Copy dependency manifests first to leverage Docker layer caching
 COPY pyproject.toml uv.lock ./
 
@@ -32,6 +37,10 @@ COPY . .
 
 # Install the project itself into the uv-managed virtual environment
 RUN uv sync --frozen --no-dev
+
+# Install Kaggle CLI inside the managed environment and download the dataset (if credentials are provided)
+RUN uv run pip install kaggle && \
+    bash scripts/download_dataset.sh
 
 # Make the virtual environment executables available on PATH for subsequent commands
 ENV PATH="/app/.venv/bin:${PATH}"

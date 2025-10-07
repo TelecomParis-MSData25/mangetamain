@@ -1,0 +1,93 @@
+name: Dependencies
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Every Monday at 09:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync environment
+        run: uv sync --dev
+
+      - name: Upgrade lock file
+        run: uv lock --upgrade
+
+      - name: Detect dependency updates
+        id: check-updates
+        run: |
+          if git diff --quiet uv.lock; then
+            echo "updates=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "updates=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create dependency update PR
+        if: steps.check-updates.outputs.updates == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update dependencies"
+          branch: chore/update-dependencies
+          delete-branch: true
+          title: "chore: update dependencies"
+          body: |
+            ## Summary
+            Automatic dependency refresh performed by GitHub Actions.
+
+            ## Checklist
+            - [ ] Tests pass (`uv run pytest`)
+            - [ ] Docs build (`uv run sphinx-build -b html docs/source docs/build/html`)
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync environment
+        run: uv sync --dev
+
+      - name: Install security tooling
+        run: uv run pip install safety bandit
+
+      - name: Run Safety vulnerability scan
+        run: uv run safety check --json --output safety-report.json || true
+
+      - name: Run Bandit security linter
+        run: uv run bandit -r src -f json -o bandit-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            safety-report.json
+            bandit-report.json
