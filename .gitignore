@@ -8,3 +8,4 @@ instance/
 *.sqlite3
 *.log
 uploads/
+docs/build/
