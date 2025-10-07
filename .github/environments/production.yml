@@ -1,0 +1,10 @@
+name: production
+protection_rules:
+  - type: required_reviewers
+    required_reviewers: 1
+  - type: wait_timer
+    wait_timer: 0
+  - type: branch_policy
+    branch_policy:
+      type: branch_name_pattern
+      pattern: "main"
