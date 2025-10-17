@@ -19,6 +19,7 @@ docker build -t mangetamain .
 ```
 
 Cette commande :
+
 - Lit le `Dockerfile` à la racine du projet
 - Installe toutes les dépendances nécessaires
 - Configure l'environnement Python
@@ -31,6 +32,7 @@ docker run -p 8501:8501 mangetamain
 ```
 
 Cette commande :
+
 - Démarre un conteneur basé sur l'image `mangetamain`
 - Map le port 8501 du conteneur vers le port 8501 de l'hôte
 - Rend l'application accessible à l'adresse : `http://localhost:8501`
@@ -58,16 +60,19 @@ Le projet inclut une suite complète de tests unitaires et d'intégration pour v
 #### Lancement des tests
 
 **Tests unitaires uniquement :**
+
 ```bash
 uv run pytest tests/test_data_analysis.py -v
 ```
 
 **Tests d'intégration :**
+
 ```bash
 uv run pytest tests/test_integration.py -v
 ```
 
 **Tous les tests :**
+
 ```bash
 uv run pytest -v
 ```
@@ -114,6 +119,7 @@ tests/
 ```
 
 Les tests couvrent :
+
 - ✅ Chargement et validation des données
 - ✅ Analyse des temps de préparation et gestion des outliers
 - ✅ Analyse des contributeurs et leur productivité
@@ -142,18 +148,21 @@ docs/
 #### Génération de la documentation
 
 **Générer automatiquement la documentation API :**
+
 ```bash
 cd docs
 uv run sphinx-apidoc -o source ../src --force
 ```
 
 **Construire la documentation HTML :**
+
 ```bash
 cd docs
 uv run sphinx-build -b html source build/html
 ```
 
 **Ou utiliser le Makefile :**
+
 ```bash
 cd docs
 make html
@@ -162,6 +171,7 @@ make html
 #### Consultation de la documentation
 
 Une fois générée, la documentation est accessible via :
+
 - **Fichier local** : `docs/build/html/index.html`
 - **Serveur local** : Ouvrir le fichier dans un navigateur
 
@@ -184,6 +194,7 @@ make html
 ```
 
 La documentation Sphinx est particulièrement utile pour :
+
 - Comprendre l'architecture du code
 - Explorer les APIs disponibles
 - Intégrer le module dans d'autres projets
@@ -197,14 +208,15 @@ La documentation Sphinx est particulièrement utile pour :
 
 La popularité d'une recette peut être mesurée selon deux axes :
 
-- **Satisfaction** :  
-    - Définie par la note moyenne attribuée (`avg_rating`), la médiane (`median_rating`), et l'écart-type (`rating_std`).
-    - À considérer uniquement si le nombre de notes (`n_ratings`) est suffisant par rapport au nombre de reviews (définir un ratio minimal).
-    - Si `rating = 0`, aucune note n’a été donnée, mais il peut y avoir des reviews.
+- **Satisfaction** :
 
-- **Engagement** :  
-    - Mesuré par le nombre de reviews (`reviews`), variable permettant de définir `n_interactions` en comptant le nombre de lignes existantes `reviews`/ recette.
-    - Plus il y a de reviews, plus la recette est considérée comme populaire (dcp indépendamment de la note).
+  - Définie par la note moyenne attribuée (`avg_rating`), la médiane (`median_rating`), et l'écart-type (`rating_std`).
+  - À considérer uniquement si le nombre de notes (`n_ratings`) est suffisant par rapport au nombre de reviews (définir un ratio minimal).
+  - Si `rating = 0`, aucune note n’a été donnée, mais il peut y avoir des reviews.
+
+- **Engagement** :
+  - Mesuré par le nombre de reviews (`reviews`), variable permettant de définir `n_interactions` en comptant le nombre de lignes existantes `reviews`/ recette.
+  - Plus il y a de reviews, plus la recette est considérée comme populaire (dcp indépendamment de la note).
 
 ### 2. Effort culinaire
 
@@ -236,6 +248,7 @@ Deux dimensions complémentaires :
 - `rating_std` : écart-type des notes
 
 **Variables à créer :**
+
 - `bayes_mean` : moyenne bayésienne (corrige les petits échantillons)
 - `wilson_lb` : borne inférieure de l’intervalle de Wilson (notes positives ≥4/5)
 

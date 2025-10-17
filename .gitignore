@@ -16,3 +16,6 @@ docs/build/
 *.pkl
 *.parquet
 *.zip
+*.xlsx
+.kaggle/
+kaggle.json
