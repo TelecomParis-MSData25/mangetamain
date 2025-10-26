@@ -44,11 +44,11 @@ largeur_bin = 2 * IQR(x) / n^(1/3)
 ```
 Cette approche garantit une représentation visuelle équilibrée des distributions asymétriques.
 
-![Histogrammes des variables minutes, n_steps et n_ingredients](./histogramme_var_minutes_n_steps_n_ingredients.png "Histogrammes des variables d'effort culinaire")
+![Histogrammes des variables minutes, n_steps et n_ingredients](./images/histogramme_var_minutes_n_steps_n_ingredients.png "Histogrammes des variables d'effort culinaire")
 
 Les histogrammes révèlent clairement les asymétries mentionnées, justifiant les transformations logarithmiques appliquées par la suite.
 
-![Box plot des variables minutes, n_steps et n_ingredients](./boxplot_var_minutes_n_steps_n_ingredients.png "Identification des outliers")
+![Box plot des variables minutes, n_steps et n_ingredients](./images/boxplot_var_minutes_n_steps_n_ingredients.png "Identification des outliers")
 
 Les boxplots confirment la présence d'outliers extrêmes, particulièrement pour la variable `minutes` avec des recettes dépassant 1000 minutes.
 
@@ -141,7 +141,7 @@ Résultats cohérents avec Spearman, confirmant la robustesse des conclusions.
 
 | Corrélations de Spearman | Corrélations de Pearson |
 |:------------------------:|:-----------------------:|
-| ![Spearman](./correlations_spearman.png) | ![Pearson](./correlations_pearson.png) |
+| ![Spearman](./images/correlations_spearman.png) | ![Pearson](./images/correlations_pearson.png) |
 | *Variables brutes* | *Variables transformées* |
 
 La heatmap révèle des corrélations très faibles (toutes < |0.05|) entre les variables d'effort et de popularité, avec une légère tendance négative suggérant que l'effort n'améliore pas la popularité.
@@ -168,7 +168,7 @@ Q4 (Élevé)          | 4.660 ± 0.102
 
 **Pattern en U observé** : Les recettes très simples (Q1) et très complexes (Q4) sont légèrement plus populaires que les recettes d'effort moyen.
 
-![Courbe en U de la popularité par quartile](./effort_popularite_pattern_U.png "Pattern en U : popularité selon l'effort culinaire")
+![Courbe en U de la popularité par quartile](./images/effort_popularite_pattern_U.png "Pattern en U : popularité selon l'effort culinaire")
 
 Le graphique illustre le pattern en U détecté : bien que statistiquement significatif, l'amplitude de variation (0.011 point) reste pratiquement négligeable, confirmant que l'effort n'a pas d'impact substantiel sur la popularité.
 
