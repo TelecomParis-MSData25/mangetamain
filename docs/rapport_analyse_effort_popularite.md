@@ -13,20 +13,24 @@ Cette étude vise à analyser la relation entre l'effort culinaire requis pour r
 Le dataset initial (`RAW_recipes.csv`) contient plus de 230 000 recettes avec les variables suivantes :
 
 **Variables quantitatives continues** :
+
 - `minutes` : temps de préparation en minutes
 - `n_steps` : nombre d'étapes de préparation (discrète)
 - `n_ingredients` : nombre d'ingrédients (discrète)
 
 **Variables textuelles** :
+
 - `steps` : description détaillée des étapes de préparation
 - `ingredients` : liste des ingrédients
 
 **Variables d'identification** :
+
 - `id` : identifiant unique de la recette
 
 ### 1.2 Justification du choix des variables
 
 Ces variables ont été sélectionnées car elles constituent les composantes fondamentales de l'effort culinaire :
+
 - **Temps** : contrainte temporelle directe pour l'utilisateur
 - **Complexité procédurale** : effort cognitif et technique requis
 - **Ressources** : effort logistique de préparation des ingrédients
@@ -34,14 +38,15 @@ Ces variables ont été sélectionnées car elles constituent les composantes fo
 ### 1.3 Observation des distributions et taille des bins
 
 L'exploration des distributions révèle des asymétries importantes :
+
 - `minutes` : distribution très asymétrique avec de nombreux outliers (recettes > 1000 minutes)
 - `n_steps` : distribution concentrée entre 1 et 20 étapes, quelques valeurs extrêmes
 - `n_ingredients` : majorité des recettes entre 5 et 15 ingrédients
 
 Pour la visualisation, la règle de Freedman-Diaconis a été appliquée pour déterminer la taille optimale des bins :
-```
-largeur_bin = 2 * IQR(x) / n^(1/3)
-```
+
+$$\text{largeur\_bin} = \frac{2 \times \text{IQR}(x)}{n^{1/3}}$$
+
 Cette approche garantit une représentation visuelle équilibrée des distributions asymétriques.
 
 ![Histogrammes des variables minutes, n_steps et n_ingredients](./images/histogramme_var_minutes_n_steps_n_ingredients.png "Histogrammes des variables d'effort culinaire")
@@ -59,16 +64,19 @@ Les boxplots confirment la présence d'outliers extrêmes, particulièrement pou
 Plusieurs stratégies ont été appliquées selon les variables :
 
 **Pour `minutes`** :
+
 - Identification d'outliers extrêmes (recettes > 360 minutes soit 6h)
 - Suppression de ces recettes car des recettes aussi longues n'impliquent pas nécessairement un effort culinaire important
 - Application d'une transformation logarithmique : `log_minutes = log(minutes + 1)`
 - Winsorisation au 95e percentile pour les analyses de corrélation
 
 **Pour `n_steps`** :
+
 - Identification des outliers qui ne traduisent pas un effort plus ou moins extrême, certaines recettes ont beaucoup d'étapes avec très peu de mots donc peu d'effort
 - Conceptualisation d'une nouvelle variable qui traduirait au mieux l'effort en calculant le nombre de mots moyen par étape afin de pondérer la variable `n_steps`.
 
 **Pour `n_ingredients`** :
+
 - Conservation des valeurs extrêmes car elles représentent des recettes réellement complexes
 - Transformation logarithmique pour `n_ingredients` dans certaines analyses
 
@@ -82,11 +90,13 @@ Plusieurs stratégies ont été appliquées selon les variables :
 ### 2.3 Création de variables (Feature Engineering)
 
 **Variables transformées** :
+
 - `log_minutes` : transformation logarithmique du temps (quantitative continue)
 - `log_n_ingredients` : transformation logarithmique du nombre d'ingrédients
 - `log1p_interactions_per_month_w` : interactions mensuelles avec transformation log1p et winsorisation
 
 **Variables dérivées** :
+
 - `avg_words_per_step` : complexité textuelle des instructions (quantitative continue)
 - `effort_score` : score composite d'effort (0-100, quantitative continue)
 - `effort_category` : catégorisation de l'effort (qualitative ordinale : "Très Facile", "Facile", "Modéré", "Difficile", "Très Difficile")
@@ -94,25 +104,28 @@ Plusieurs stratégies ont été appliquées selon les variables :
 - `steps_x_ingredients` : terme d'interaction (quantitative continue)
 
 **Variables de popularité** :
+
 - `bayes_mean` : score de qualité bayésien (quantitative continue)
 - `wilson_lb` : borne inférieure de Wilson pour la confiance (quantitative continue)
 - `interactions_per_month` : engagement mensuel des utilisateurs (quantitative continue)
 
 **Calcul du score d'effort composite** :
-```
-effort_score = 0.40 × minutes_score + 0.35 × avg_word_per_steps_score + 0.25 × ingredients_score
-```
+
+$$\text{effort\_score} = 0.40 \times \text{minutes\_score} + 0.35 \times \text{avg\_words\_per\_steps\_score} + 0.25 \times \text{ingredients\_score}$$
+
 Avec normalisation Min-Max sur échelle 0-100.
 
 ### 2.4 Variables utilisées pour l'analyse bivariée
 
 **Variables d'effort** (utilisées concrètement) :
+
 - `log_minutes` : temps transformé
-- `avg_words_per_steps` : nombre moyen de mots par étapes
+- `avg_words_per_steps` : nombre moyen de mots par étape
 - `n_ingredients` : nombre d'ingrédients  
 - `effort_score` : score composite
 
 **Variables de popularité** (utilisées concrètement) :
+
 - `bayes_mean` : qualité perçue
 - `wilson_lb` : confiance statistique
 - `interactions_per_month` : engagement utilisateur
@@ -125,6 +138,7 @@ Avec normalisation Min-Max sur échelle 0-100.
 Utilisée pour sa robustesse aux distributions asymétriques, appliquée sur les variables brutes.
 
 Résultats principaux :
+
 - `effort_score` vs `bayes_mean` : ρ = -0.026 (p < 0.001)
 - `effort_score` vs `wilson_lb` : ρ = -0.043 (p < 0.001)
 - `log_minutes` vs `interactions_per_month` : ρ = -0.037 (p < 0.001)
@@ -133,11 +147,11 @@ Résultats principaux :
 Appliquée sur variables transformées pour respecter les hypothèses de normalité.
 
 Mapping des transformations :
+
 - `n_ingredients` → `log_n_ingredients`
 - `interactions_per_month` → `log1p_interactions_per_month_w`
 
 Résultats cohérents avec Spearman, confirmant la robustesse des conclusions.
-
 
 | Corrélations de Spearman | Corrélations de Pearson |
 |:------------------------:|:-----------------------:|
@@ -149,20 +163,22 @@ La heatmap révèle des corrélations très faibles (toutes < |0.05|) entre les 
 ### 3.2 Analyse par quartiles avec tests ANOVA
 
 **Méthodologie** :
+
 - Division des recettes en 4 quartiles d'effort égaux
 - Comparaison des moyennes de popularité entre groupes
 - Tests ANOVA et Kruskal-Wallis pour vérifier les différences
 
 **Résultats** :
-```
-Quartile d'effort    | Popularité moyenne (bayes_mean)
-Q1 (Faible)         | 4.665 ± 0.105
-Q2 (Moyen-)         | 4.655 ± 0.108
-Q3 (Moyen+)         | 4.654 ± 0.105
-Q4 (Élevé)          | 4.660 ± 0.102
-```
+
+| Quartile d'effort    | Popularité moyenne (bayes_mean) |
+|----------------------|---------------------------------|
+| Q1 (Faible)          | 4.665 ± 0.105                   |
+| Q2 (Moyen-)          | 4.655 ± 0.108                   |
+| Q3 (Moyen+)          | 4.654 ± 0.105                   |
+| Q4 (Élevé)           | 4.660 ± 0.102                   |
 
 **Tests statistiques** :
+
 - ANOVA : F = 119.973, p < 0.001 (significatif)
 - Kruskal-Wallis : H élevé, p < 0.001 (significatif)
 
@@ -175,6 +191,7 @@ Le graphique illustre le pattern en U détecté : bien que statistiquement signi
 ### 3.3 Analyses de régression linéaire
 
 **Modèles univariés** :
+
 - `effort_score` → `bayes_mean` : R² = 0.001 (0.1% de variance expliquée)
 - Coefficient = -0.0003 (impact négligeable)
 
@@ -182,22 +199,26 @@ Le graphique illustre le pattern en U détecté : bien que statistiquement signi
 Variables prédictives standardisées : `log_minutes_std`, `n_steps_std`, `n_ingredients_std`, `steps_x_ingredients_std`, `age_months_std`
 
 Résultats pour les trois cibles :
+
 - `bayes_mean` : R² = 0.002, coefficients < ±0.02
 - `wilson_lb` : R² = 0.002, coefficients < ±0.02  
 - `log1p_interactions_per_month_w` : R² = 0.003, coefficients < ±0.02
 
 **Interaction `steps_x_ingredients`** :
+
 - Effet statistiquement significatif mais pratiquement négligeable
 - Coefficient ≈ -0.001 pour `wilson_lb` et engagement
 
 ### 3.4 Analyses non-linéaires (LOWESS)
 
 **Régression LOWESS** appliquée pour détecter des relations non-linéaires :
+
 - `log_minutes` vs `bayes_mean` : courbe quasi-plate autour de 4.65
 - `effort_score` vs `interactions_per_month` : légère décroissance sans courbure marquée
 - Pas d'effet de seuil ni de relation en U détectée
 
 **Interaction spatiale** `n_steps` × `n_ingredients` :
+
 - Densité maximale dans la zone effort modéré (< 20 étapes, < 15 ingrédients)
 - Coloration homogène par `bayes_mean` : pas de "hotspots" de satisfaction
 - Recettes très complexes : densité faible, popularité non améliorée
@@ -219,6 +240,7 @@ Cette approche multi-méthodologique garantit la robustesse des conclusions face
 ### 4.1 Résumé des résultats concluants
 
 **Consensus statistique** : Toutes les analyses convergent vers une conclusion robuste :
+
 - Corrélations systématiquement < |0.05| entre effort et popularité
 - R² des modèles prédictifs < 0.01 (variance expliquée négligeable)
 - Tests ANOVA significatifs mais différences pratiques minimes (< 0.02 point)
@@ -229,11 +251,13 @@ Cette approche multi-méthodologique garantit la robustesse des conclusions face
 ### 4.2 Éléments révélés par l'analyse
 
 **Facteurs non-explicatifs confirmés** :
+
 - Le temps de préparation n'influence pas la satisfaction utilisateur
 - La complexité procédurale (nombre d'étapes) n'améliore pas les notes
 - L'accumulation d'ingrédients n'engendre pas plus d'engagement
 
 **Variable de contrôle significative** :
+
 - `age_months` : seule variable avec effet détectable sur l'engagement
 - Les recettes plus anciennes accumulent plus d'interactions (effet temporel)
 
@@ -252,12 +276,14 @@ Cette approche multi-méthodologique garantit la robustesse des conclusions face
 **Réponse** : **Non, l'effort culinaire n'influence pas significativement la popularité des recettes.**
 
 **Précisions** :
+
 - Les corrélations détectées (ρ ≈ -0.03) sont statistiquement significatives mais pratiquement négligeables
 - L'effet observé s'explique par la très grande taille d'échantillon (n > 221 813) qui rend significatives des relations infinitésimales
 - Les recettes simples ne sont pas substantiellement plus populaires que les recettes complexes
 - La popularité doit dépendre d'autres facteurs non mesurés : goût, présentation, originalité, marketing, contexte saisonnier
 
 **Implications pratiques** :
+
 - Pour les créateurs de recettes : la simplicité n'est pas un avantage déterminant
 - Deux publics distincts coexistent : grand public (préférence légère pour la simplicité) et passionnés (tolérance à la complexité)
 - Les plateformes culinaires peuvent valoriser la diversité d'effort sans craindre de pénaliser les recettes complexes
