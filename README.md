@@ -55,77 +55,111 @@ docker rm mangetamain-app
 
 ### 🧪 Tests unitaires
 
-Le projet inclut une suite complète de tests unitaires et d'intégration pour valider le fonctionnement du module d'analyse des données.
+Le projet inclut une suite complète de tests pour valider le fonctionnement du module d'analyse des données.
 
 #### Lancement des tests
 
-**Tests unitaires uniquement :**
+**Tests unitaires :**
 
 ```bash
-uv run pytest tests/test_data_analysis.py -v
-```
+# Tests du module de préprocessing
+uv run pytest tests/test_dataset_preprocessing.py -v
 
-**Tests d'intégration :**
-
-```bash
-uv run pytest tests/test_integration.py -v
+# Tests du module d'analyse statistique
+uv run pytest tests/test_utils.py -v
 ```
 
 **Tous les tests :**
 
 ```bash
-uv run pytest -v
+uv run pytest tests/ -v
 ```
 
 #### Tests avec couverture de code
 
 ```bash
 # Rapport de couverture détaillé
-uv run pytest --cov=src --cov-report=term-missing
+uv run pytest tests/ --cov=dataset_analysis --cov-report=term-missing
 
 # Générer un rapport HTML
-uv run pytest --cov=src --cov-report=html
+uv run pytest tests/ --cov=dataset_analysis --cov-report=html
 ```
 
 #### Types de tests disponibles
 
-- **Tests unitaires** (`test_data_analysis.py`) : 17 tests avec données simulées
-- **Tests d'intégration** (`test_integration.py`) : 11 tests avec le vrai dataset
-- **Tests marqués** :
-  - `@pytest.mark.unit` : Tests unitaires rapides
-  - `@pytest.mark.integration` : Tests d'intégration
-  - `@pytest.mark.slow` : Tests plus longs
+- **Tests de préprocessing** (`test_dataset_preprocessing.py`) : 
+  - Tests des fonctions pures de catégorisation et parsing
+  - Tests des transformations DataFrame (recettes, interactions)
+  - Tests de fusion et métriques d'agrégation
+  - Test mocké de `build_analysis_dataset` (sans I/O)
+
+- **Tests d'analyse statistique** (`test_utils.py`) :
+  - Tests de chargement et filtrage des données
+  - Tests d'enrichissement des variables (standardisation, interactions)
+  - Tests de corrélations (Pearson, Spearman)
+  - Tests d'agrégation par quantiles et comparaison de groupes
+  - Tests de régression LOWESS et modélisation prédictive
 
 #### Exécution sélective des tests
 
 ```bash
-# Exclure les tests lents
-uv run pytest -m "not slow"
+# Tests spécifiques par fonction
+uv run pytest tests/test_utils.py::test_compute_correlations_spearman -v
 
-# Seulement les tests unitaires
-uv run pytest -m "unit"
+# Tests par pattern
+uv run pytest tests/ -k "correlation" -v
 
-# Seulement les tests d'intégration
-uv run pytest -m "integration"
+# Exclure les tests lents (si marqués)
+uv run pytest tests/ -m "not slow" -v
 ```
 
 #### Structure des tests
 
 ```
-tests/
+├── dataset_analysis/           #Modules à tester
+│   ├── __init__.py
+│   ├── utils.py
+│   └── dataset_preprocessing.py
+├── tests/                      # Tests à réaliser
 ├── __init__.py
-├── test_data_analysis.py      # Tests unitaires avec données simulées
-└── test_integration.py        # Tests d'intégration avec vrai dataset
+├── test_dataset_preprocessing.py    # Tests du module de préparation des données
+└── test_utils.py                    # Tests du module d'analyse statistique
 ```
 
-Les tests couvrent :
+#### Couverture fonctionnelle
 
-- ✅ Chargement et validation des données
-- ✅ Analyse des temps de préparation et gestion des outliers
-- ✅ Analyse des contributeurs et leur productivité
-- ✅ Parsing et analyse des ingrédients et tags
-- ✅ Traitement des scores nutritionnels
+Les tests couvrent l'ensemble des fonctionnalités :
+
+**Préprocessing :**
+- ✅ Parsing des recettes (étapes, ingrédients, temps)
+- ✅ Catégorisation automatique (complexité, effort)
+- ✅ Calcul des scores d'effort culinaire
+- ✅ Agrégation des métriques d'interaction
+- ✅ Fusion recettes/interactions avec variables dérivées
+
+**Analyse statistique :**
+- ✅ Chargement et préparation des datasets
+- ✅ Analyses de corrélation bivariée (robustes aux outliers)
+- ✅ Stratification par quantiles et tests de groupes
+- ✅ Régression non-paramétrique (LOWESS)
+- ✅ Modélisation prédictive (linéaire, forêts aléatoires, OLS)
 - ✅ Gestion des cas limites et erreurs
+
+#### Configuration des tests
+
+Le fichier `pytest.ini` configure :
+- Chemins de test automatiques
+- Marqueurs personnalisés (slow, integration, unit)
+- Options par défaut pour l'exécution
+- Chemin Python pour l'import des modules
+
+#### Données de test
+
+Les tests utilisent des fixtures avec données simulées pour garantir :
+- **Reproductibilité** : Graines aléatoires fixées
+- **Performance** : Pas d'accès disque pendant les tests
+- **Isolation** : Tests indépendants les uns des autres
+- **Couverture** : Cas normaux et cas limites
 
 ### 📚 Documentation avec Sphinx
 
