@@ -76,3 +76,13 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+[dependency-groups]
+dev = [
+    "ruff>=0.7.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+extend-exclude = [
+    "dataset_analysis/**/*.ipynb",
+]

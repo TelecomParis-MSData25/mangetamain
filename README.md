@@ -12,6 +12,22 @@
 
 Le projet peut être containerisé et exécuté avec Docker pour faciliter le déploiement et assurer la portabilité.
 
+#### Image officielle du projet
+
+Une image Docker prête à l’emploi est publiée automatiquement par la CI/CD du dépôt GitHub. Pour l’utiliser :
+
+```bash
+docker pull ghcr.io/telecomparis-msdata25/mangetamain:latest
+docker run --rm -d --name mangetamain-app -p 8501:8501 ghcr.io/telecomparis-msdata25/mangetamain:latest
+```
+
+- `docker pull` télécharge l’image officielle hébergée sur le registre du projet.
+- `docker run --rm -d --name mangetamain-app -p 8501:8501 …` lance l’application :
+  - `--rm` supprime le conteneur une fois arrêté.
+  - `-d` exécute le conteneur en arrière-plan.
+  - `--name mangetamain-app` attribue un nom lisible au conteneur.
+  - `-p 8501:8501` mappe le port 8501 du conteneur vers celui de l’hôte pour accéder à Streamlit sur `http://localhost:8501`.
+
 #### Construction de l'image Docker
 
 ```bash
