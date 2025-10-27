@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import ast
 from collections import Counter
-from typing import List, Tuple, Dict, Optional
+from typing import List, Dict, Optional
 
 
 class RecipeDataAnalyzer:

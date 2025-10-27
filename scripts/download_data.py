@@ -1,5 +1,4 @@
 from pathlib import Path
-import os
 import errno
 from kaggle.api.kaggle_api_extended import KaggleApi
 

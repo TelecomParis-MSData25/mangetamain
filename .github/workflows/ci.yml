@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
+      - name: Run Ruff lint
+        run: uv run ruff check src tests scripts
+
       - name: Install Kaggle CLI
         run: uv run pip install kaggle
 
@@ -85,6 +88,9 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --dev
+
+      - name: Run Ruff lint
+        run: uv run ruff check src tests scripts
 
       - name: Install Kaggle CLI
         run: uv run pip install kaggle
