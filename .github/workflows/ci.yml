@@ -50,7 +50,7 @@ jobs:
           chmod 600 ~/.kaggle/kaggle.json
 
       - name: Download Food.com dataset
-        run: bash scripts/download_dataset.sh
+        run: uv run python scripts/download_data.py --target data
 
       - name: Run tests
         run: uv run pytest --cov=src --cov-report=xml --junitxml=pytest-report.xml
@@ -105,7 +105,7 @@ jobs:
           chmod 600 ~/.kaggle/kaggle.json
 
       - name: Download Food.com dataset
-        run: bash scripts/download_dataset.sh
+        run: uv run python scripts/download_data.py --target data
 
       - name: Run tests
         run: |
