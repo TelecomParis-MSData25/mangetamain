@@ -5,7 +5,6 @@ import os
 import sys
 import errno
 from pathlib import Path
-from typing import Optional, Sequence
 
 from kaggle.api.kaggle_api_extended import KaggleApi
 
@@ -23,7 +22,7 @@ KNOWN_FILES = (
 DATASET_REF = "shuyangli94/food-com-recipes-and-user-interactions"
 
 
-def find_repo_root(start: Optional[Path] = None) -> Path:
+def find_repo_root(start: Path | None = None) -> Path:
     """Remonte l'arborescence pour trouver la racine du dépôt."""
     p = (start or Path.cwd()).resolve()
     for parent in [p] + list(p.parents):
@@ -115,7 +114,7 @@ def download_and_extract(target_dir: Path, force: bool = False) -> None:
         raise FileNotFoundError(f"Fichiers manquants après téléchargement: {missing_list}")
 
 
-def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+def parse_args(argv: str | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Télécharge l'ensemble des datasets Food.com.")
     parser.add_argument(
         "--target",
@@ -130,7 +129,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> None:
+def main(argv: str | None = None) -> None:
     args = parse_args(argv)
     target_dir = resolve_target_directory(args.target)
     download_and_extract(target_dir, force=args.force)
