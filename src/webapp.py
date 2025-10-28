@@ -23,19 +23,29 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
+import re
+import base64
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import streamlit as st
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-import re
-import base64
 
 # Ajouter le répertoire parent au path pour importer les modules locaux
 sys.path.append(str(Path(__file__).resolve().parents[1]))
+
+from webapp_utils import (
+    compute_descriptive_stats,
+    compute_effort_pattern,
+    compute_histogram_figure,
+    compute_quartile_pattern,
+    fit_simple_regression,
+    infer_filter_options,
+)
 
 
 # Initialise le logger au niveau module
@@ -238,7 +248,7 @@ def generate_sample_data(n_recipes: int = 1000) -> pd.DataFrame:
         
         logger.info("Données simulées générées avec succès")
         
-        return pd.DataFrame({
+        simulated_df = pd.DataFrame({
             'id': range(1, n_recipes + 1),
             'n_ingredients': n_ingredients,
             'n_steps': n_steps,
@@ -251,9 +261,23 @@ def generate_sample_data(n_recipes: int = 1000) -> pd.DataFrame:
             'bayes_mean': bayes_mean,
             'wilson_lb': wilson_lb,
             'age_months': age_months,
+            'n_interactions': n_interactions,
             'interactions_per_month': interactions_per_month,
             'log1p_interactions_per_month_w': log1p_interactions_per_month_w
         })
+        
+        simulated_df['log_n_ingredients'] = np.log(simulated_df['n_ingredients'].clip(lower=1))
+        try:
+            simulated_df['effort_quartile'] = pd.qcut(
+                simulated_df['effort_score'],
+                4,
+                labels=['Q1', 'Q2', 'Q3', 'Q4'],
+                duplicates='drop'
+            )
+        except ValueError:
+            simulated_df['effort_quartile'] = pd.Series(['Q1'] * len(simulated_df))
+        
+        return simulated_df
     
     except Exception as e:
         logger.error(f"Erreur lors de la génération des données simulées : {e}", exc_info=True)
@@ -311,10 +335,73 @@ def display_variable_definitions() -> None:
             """)
 
 
+def apply_sidebar_filters(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Applique les filtres définis dans la barre latérale sur le dataset.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Dataset à filtrer.
+
+    Returns
+    -------
+    pd.DataFrame
+        Vue filtrée du dataset original.
+    """
+    if data.empty:
+        st.sidebar.info("Dataset vide. Aucun filtre disponible.")
+        return data
+
+    filtered = data.copy()
+
+    options = infer_filter_options(filtered)
+
+    # Filtre sur l'âge des recettes
+    if options.age_range and options.age_range[0] < options.age_range[1]:
+        selected_age = st.sidebar.slider(
+            "Âge des recettes (mois)",
+            min_value=options.age_range[0],
+            max_value=options.age_range[1],
+            value=options.age_range,
+            step=1.0,
+        )
+        filtered = filtered[(filtered['age_months'] >= selected_age[0]) &
+                            (filtered['age_months'] <= selected_age[1])]
+
+    # Filtre sur le nombre d'interactions minimum
+    if options.interactions_range and options.interactions_range[0] < options.interactions_range[1]:
+        threshold = st.sidebar.slider(
+            "Nombre minimum d'interactions",
+            min_value=options.interactions_range[0],
+            max_value=options.interactions_range[1],
+            value=options.interactions_range[0],
+            step=1,
+        )
+        filtered = filtered[filtered['n_interactions'] >= threshold]
+
+    # Filtre sur les catégories d'effort
+    if options.effort_categories:
+        selected_categories = st.sidebar.multiselect(
+            "Catégories d'effort",
+            options=options.effort_categories,
+            default=options.effort_categories,
+        )
+        if selected_categories:
+            filtered = filtered[filtered['effort_category'].isin(selected_categories)]
+        else:
+            filtered = filtered.iloc[0:0]
+
+    st.sidebar.markdown(f"**Recettes visibles :** {len(filtered):,}")
+    return filtered
+
+
 def display_data_overview(data: pd.DataFrame, 
                          has_real_data: bool, 
                          recipes_df: pd.DataFrame | None = None,
-                         interactions_df: pd.DataFrame | None = None) -> None:
+                         interactions_df: pd.DataFrame | None = None,
+                         total_records: int | None = None,
+                         analysis_full: pd.DataFrame | None = None) -> None:
     """
     Affiche la vue d'ensemble des données avec métriques clés.
     
@@ -334,6 +421,11 @@ def display_data_overview(data: pd.DataFrame,
     Affiche les compteurs généraux et les moyennes des variables importantes
     """
     st.subheader("Vue d'ensemble des données")
+
+    if total_records is not None and total_records != len(data):
+        st.caption(
+            f"Filtres appliqués : {len(data):,} recettes affichées sur {total_records:,} disponibles."
+        )
     
     try:
         if has_real_data and recipes_df is not None and interactions_df is not None:
@@ -348,6 +440,26 @@ def display_data_overview(data: pd.DataFrame,
             
             # Moyennes des variables clés
             _display_variable_metrics(data)
+
+            with st.expander("Aperçu des DataFrames nettoyés", expanded=False):
+                tab_rec, tab_int, tab_analysis_filtered, tab_analysis_full = st.tabs([
+                    "recipes_df",
+                    "interactions_df",
+                    "analysis_df (filtré)",
+                    "analysis_df (complet)"
+                ])
+
+                with tab_rec:
+                    _render_dataframe_preview(recipes_df, "recipes_df")
+                with tab_int:
+                    _render_dataframe_preview(interactions_df, "interactions_df")
+                with tab_analysis_filtered:
+                    _render_dataframe_preview(data, "analysis_df (filtré)")
+                with tab_analysis_full:
+                    if analysis_full is not None:
+                        _render_dataframe_preview(analysis_full, "analysis_df (complet)")
+                    else:
+                        st.info("Dataset complet indisponible dans ce contexte.")
         else:
             # Données simulées
             col1, col2 = st.columns(2)
@@ -359,6 +471,9 @@ def display_data_overview(data: pd.DataFrame,
                 st.metric("Interactions totales", "Simulées")
             
             _display_variable_metrics(data)
+
+            with st.expander("Aperçu des données simulées", expanded=False):
+                _render_dataframe_preview(data, "analysis_df (simulé)")
         
         logger.debug("Métriques générales calculées avec succès")
     
@@ -399,6 +514,29 @@ def _display_variable_metrics(data: pd.DataFrame) -> None:
         if 'n_ingredients' in data.columns:
             st.metric("n_ingredients (moyenne)", f"{data['n_ingredients'].mean():.1f}")
 
+
+def _render_dataframe_preview(df: pd.DataFrame | None, label: str, max_rows: int = 200) -> None:
+    """
+    Affiche un aperçu tabulaire limité pour éviter la surcharge.
+
+    Parameters
+    ----------
+    df : pd.DataFrame | None
+        DataFrame à visualiser.
+    label : str
+        Nom affiché au-dessus de l'aperçu.
+    max_rows : int, default=200
+        Nombre maximal de lignes à afficher.
+    """
+    if df is None or df.empty:
+        st.info(f"Aucune donnée disponible pour {label}.")
+        return
+
+    sample_size = min(max_rows, len(df))
+    st.write(f"{label} — aperçu de {sample_size} lignes sur {len(df):,}")
+    st.dataframe(df.head(sample_size), use_container_width=True)
+
+
 def display_variable_statistics(data: pd.DataFrame) -> None:
     """
     Affiche les statistiques descriptives pour une variable sélectionnée.
@@ -423,11 +561,19 @@ def display_variable_statistics(data: pd.DataFrame) -> None:
             'bayes_mean': 'Note bayésienne',
             'wilson_lb': 'Wilson Lower Bound',
             'effort_score': 'Score d\'effort',
+            'score_effort': 'Score d\'effort',
+            'log_n_ingredients': 'Nombre d\'ingrédients (log)',
             'n_ingredients': 'Nombre d\'ingrédients'
         }
         
         # Filtrer les variables disponibles dans les données
-        available_vars = {k: v for k, v in histogram_vars.items() if k in data.columns}
+        available_vars: dict[str, str] = {}
+        for key, label in histogram_vars.items():
+            if key not in data.columns:
+                continue
+            if key == 'score_effort' and 'effort_score' in data.columns:
+                continue
+            available_vars[key] = label
         logger.debug(f"Variables disponibles pour histogrammes : {list(available_vars.keys())}")
         
         if available_vars:
@@ -445,6 +591,7 @@ def display_variable_statistics(data: pd.DataFrame) -> None:
             
             # Affichage des statistiques sous forme de métriques
             _display_descriptive_statistics(data, selected_var, available_vars[selected_var])
+            _plot_variable_histogram(data, selected_var, available_vars[selected_var])
         
         else:
             logger.warning("Aucune variable d'histogramme disponible dans les données")
@@ -471,26 +618,50 @@ def _display_descriptive_statistics(data: pd.DataFrame,
     """
     st.subheader(f"Statistiques de {var_label}")
     
-    stats_data = data[selected_var].describe()
+    stats = compute_descriptive_stats(data[selected_var])
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Moyenne", f"{stats_data['mean']:.3f}")
-        st.metric("Médiane", f"{stats_data['50%']:.3f}")
+        st.metric("Moyenne", f"{stats.mean:.3f}")
+        st.metric("Médiane", f"{stats.median:.3f}")
     
     with col2:
-        st.metric("Écart-type", f"{stats_data['std']:.3f}")
-        st.metric("Minimum", f"{stats_data['min']:.3f}")
+        st.metric("Écart-type", f"{stats.std:.3f}")
+        st.metric("Minimum", f"{stats.minimum:.3f}")
     
     with col3:
-        st.metric("Q1 (25%)", f"{stats_data['25%']:.3f}")
-        st.metric("Q3 (75%)", f"{stats_data['75%']:.3f}")
+        st.metric("Q1 (25%)", f"{stats.q1:.3f}")
+        st.metric("Q3 (75%)", f"{stats.q3:.3f}")
     
     with col4:
-        st.metric("Maximum", f"{stats_data['max']:.3f}")
-        st.metric("Observations", f"{int(stats_data['count']):,}")
+        st.metric("Maximum", f"{stats.maximum:.3f}")
+        st.metric("Observations", f"{stats.count:,}")
 
+
+def _plot_variable_histogram(data: pd.DataFrame, selected_var: str, var_label: str) -> None:
+    """
+    Affiche un histogramme interactif pour la variable sélectionnée.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Dataset contenant la variable
+    selected_var : str
+        Nom de la variable à tracer
+    var_label : str
+        Libellé descriptif utilisé pour les titres
+    """
+    if selected_var not in data.columns:
+        return
+
+    series = data[selected_var].dropna()
+    if series.empty:
+        st.warning("Aucune observation disponible pour tracer l'histogramme.")
+        return
+
+    fig_hist = compute_histogram_figure(series, var_label=var_label)
+    st.plotly_chart(fig_hist, use_container_width=True)
 
 def display_correlation_analysis(data: pd.DataFrame, has_real_data: bool) -> None:
     """
@@ -577,8 +748,28 @@ def _generate_correlation_plots(data: pd.DataFrame, effort_var: str, popularity_
         opacity=0.6
     )
 
+    regression = fit_simple_regression(sample_data, effort_var, popularity_var)
+    if regression:
+        fig.add_trace(go.Scatter(
+            x=regression.x_curve,
+            y=regression.y_curve,
+            mode='lines',
+            name='Régression linéaire',
+            line=dict(color='red', width=2),
+            hovertemplate=(
+                f'{effort_var}: %{{x:.3f}}<br>'
+                f'{popularity_var} estimé: %{{y:.3f}}<extra></extra>'
+            )
+        ))
+
     fig.update_layout(height=500)
     st.plotly_chart(fig, use_container_width=True)
+
+    if regression:
+        st.caption(
+            f"Régression : {popularity_var} = {regression.slope:.3f} × {effort_var} "
+            f"+ {regression.intercept:.3f} (R² = {regression.r_squared:.3f})"
+        )
 
     # Graphiques complémentaires
     _generate_complementary_plots(data, effort_var, popularity_var)
@@ -657,6 +848,115 @@ def _generate_quartile_boxplot(data: pd.DataFrame, effort_var: str, popularity_v
         st.error(f"Erreur lors de la création du boxplot : {e}")
 
 
+def display_effort_popularity_pattern(data: pd.DataFrame) -> None:
+    """
+    Affiche la confrontation hypothèse vs réalité et le pattern en U détecté.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Dataset filtré actuellement analysé.
+    """
+    if 'bayes_mean' not in data.columns or data.empty:
+        return
+
+    effort_pattern = compute_effort_pattern(data)
+    if effort_pattern is None:
+        st.info("Les graphiques hypothèse vs réalité nécessitent la colonne 'effort_category'.")
+        return
+
+    quartile_pattern = compute_quartile_pattern(data)
+
+    fig = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=("Hypothèse vs réalité", "Pattern en U (quartiles)")
+    )
+
+    x_positions = list(range(len(effort_pattern.categories)))
+    fig.add_trace(
+        go.Scatter(
+            x=x_positions,
+            y=effort_pattern.expected,
+            mode='lines+markers',
+            name='Tendance attendue',
+            line=dict(color='#E74C3C', width=3),
+            marker=dict(size=8),
+        ),
+        row=1,
+        col=1,
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=x_positions,
+            y=effort_pattern.observed,
+            mode='lines+markers',
+            name='Réalité observée',
+            line=dict(color='#27AE60', width=3),
+            marker=dict(size=8),
+        ),
+        row=1,
+        col=1,
+    )
+
+    fig.update_xaxes(
+        tickmode='array',
+        tickvals=x_positions,
+        ticktext=effort_pattern.categories,
+        tickangle=45,
+        row=1,
+        col=1,
+    )
+    fig.update_yaxes(title_text="bayes_mean", row=1, col=1)
+
+    if quartile_pattern is not None and not quartile_pattern.means.empty:
+        q_positions = list(range(len(quartile_pattern.means)))
+        fig.add_trace(
+            go.Scatter(
+                x=q_positions,
+                y=quartile_pattern.means.values,
+                mode='lines+markers',
+                name='Réalité (quartiles)',
+                line=dict(color='#2980B9', width=3),
+                marker=dict(size=8),
+            ),
+            row=1,
+            col=2,
+        )
+        y_min = quartile_pattern.means.min()
+        y_max = quartile_pattern.means.max()
+        margin = max(0.01, (y_max - y_min) * 0.2)
+        fig.update_xaxes(
+            tickmode='array',
+            tickvals=q_positions,
+            ticktext=quartile_pattern.labels[:len(q_positions)],
+            row=1,
+            col=2,
+        )
+        fig.update_yaxes(
+            title_text="bayes_mean",
+            row=1,
+            col=2,
+            range=[y_min - margin, y_max + margin],
+        )
+    else:
+        fig.update_xaxes(
+            title_text="Quartiles indisponibles",
+            row=1,
+            col=2,
+        )
+
+    fig.update_layout(height=520, showlegend=False)
+    st.plotly_chart(fig, use_container_width=True)
+
+    variation = float(np.max(effort_pattern.observed) - np.min(effort_pattern.observed))
+    st.caption(
+        f"Variation observée sur les catégories : {variation:.3f} point(s) de bayes_mean — "
+        "confirme une amplitude réduite entre niveaux d'effort."
+    )
+
+
 def display_correlation_matrix(data: pd.DataFrame, has_real_data: bool) -> None:
     """
     Affiche une matrice de corrélation interactive.
@@ -678,13 +978,13 @@ def display_correlation_matrix(data: pd.DataFrame, has_real_data: bool) -> None:
         # Variables par défaut selon le type de données
         if has_real_data:
             default_corr_vars = [
-                'log_minutes', 'n_steps', 'n_ingredients', 'effort_score', 
-                'bayes_mean', 'wilson_lb', 'log1p_interactions_per_month_w'
+                'log_minutes', 'n_steps', 'n_ingredients', 'log_n_ingredients',
+                'effort_score', 'bayes_mean', 'wilson_lb', 'log1p_interactions_per_month_w'
             ]
         else:
             default_corr_vars = [
-                'log_minutes', 'n_steps', 'n_ingredients', 'effort_score',
-                'bayes_mean', 'wilson_lb', 'n_interactions'
+                'log_minutes', 'n_steps', 'n_ingredients', 'log_n_ingredients',
+                'effort_score', 'bayes_mean', 'wilson_lb', 'n_interactions'
             ]
         
         # Filtrer les variables disponibles
@@ -1363,13 +1663,27 @@ def main() -> None:
         logger.debug("Chargement de l'onglet Analyse")
         st.sidebar.header("Paramètres")
         
+        filtered_data = apply_sidebar_filters(data)
+
         # Sections de l'onglet analyse
         display_variable_definitions()
-        display_data_overview(data, has_real_data, recipes_df, interactions_df)
-        display_variable_statistics(data)
-        display_correlation_analysis(data, has_real_data)
-        display_correlation_matrix(data, has_real_data)
-        display_data_table(data)
+        display_data_overview(
+            filtered_data,
+            has_real_data,
+            recipes_df,
+            interactions_df,
+            total_records=len(data),
+            analysis_full=data
+        )
+
+        if filtered_data.empty:
+            st.warning("Aucun enregistrement ne correspond aux filtres sélectionnés.")
+        else:
+            display_variable_statistics(filtered_data)
+            display_correlation_analysis(filtered_data, has_real_data)
+            display_correlation_matrix(filtered_data, has_real_data)
+            display_effort_popularity_pattern(filtered_data)
+            display_data_table(filtered_data)
     
     with tab_models:
         logger.debug("Chargement de l'onglet Modèles")
