@@ -9,11 +9,10 @@ Des tests sur les fonctions d'affichages de données et graphiques sont égaleme
 import pytest
 import pandas as pd
 import numpy as np
-import logging
 import sys
 import inspect
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, call, mock_open
+from unittest.mock import Mock, patch, MagicMock, mock_open
 
 # Ajouter le répertoire source au path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -580,9 +579,9 @@ class TestGenerateCorrelationHeatmap:
         
         variables = ['var1', 'var2']
         
-        with patch.object(webapp, 'st') as mock_st:
+        with patch.object(webapp, 'st') :
             with patch.object(webapp, 'px') as mock_px:
-                with patch.object(webapp, 'logger') as mock_logger:
+                with patch.object(webapp, 'logger') :
                     # Ne pas lever d'exception mais simuler une erreur gérée
                     mock_px.imshow.side_effect = Exception("Erreur de corrélation")
                     
@@ -624,9 +623,9 @@ class TestGenerateQuartileBoxplot:
             'popularity_var': [None, None, None]
         })
         
-        with patch.object(webapp, 'st') as mock_st:
-            with patch.object(webapp, 'px') as mock_px:
-                with patch.object(webapp, 'logger') as mock_logger:
+        with patch.object(webapp, 'st') :
+            with patch.object(webapp, 'px') :
+                with patch.object(webapp, 'logger') :
                     # La fonction devrait gérer l'erreur sans lever d'exception
                     try:
                         webapp._generate_quartile_boxplot(data, 'effort_var', 'popularity_var')
@@ -744,14 +743,12 @@ class TestPredictionVisualization:
         
         selected_features = ['log_minutes', 'n_steps']
         
-        with patch.object(webapp, 'st') as mock_st:
+        with patch.object(webapp, 'st') :
             webapp._finalize_prediction_plot(
                 mock_fig, 'bayes_mean', 'log_minutes', selected_features, plot_data
             )
             
             mock_fig.update_layout.assert_called_once()
-            # La fonction peut ne pas appeler st.info dans tous les cas
-            # mock_st.info.assert_called_once()
 
 
 class TestTabFunctions:
@@ -766,7 +763,7 @@ class TestTabFunctions:
         })
         
         with patch.object(webapp, 'st') as mock_st:
-            with patch.object(webapp, '_display_variable_metrics') as mock_metrics:
+            with patch.object(webapp, '_display_variable_metrics') :
                 # Créer des mocks avec context managers
                 col_mocks = []
                 for _ in range(3):
@@ -935,7 +932,7 @@ class TestDisplayCorrelationAnalysis:
             mock_st.sidebar.selectbox.side_effect = ['effort_score', 'bayes_mean']
             
             # Mock des fonctions de génération de graphiques
-            with patch.object(webapp, '_generate_correlation_plots') as mock_plots:
+            with patch.object(webapp, '_generate_correlation_plots') :
                 webapp.display_correlation_analysis(data, False)
                 
                 mock_st.subheader.assert_called()
@@ -1055,7 +1052,7 @@ class TestGenerateComplementaryPlots:
             with patch.object(webapp, 'px') as mock_px:
                 mock_px.histogram.return_value = Mock()
                 
-                with patch.object(webapp, '_generate_quartile_boxplot') as mock_boxplot:
+                with patch.object(webapp, '_generate_quartile_boxplot') :
                     webapp._generate_complementary_plots(data, 'effort_var', 'popularity_var')
                     
                     mock_st.columns.assert_called_once_with(2)

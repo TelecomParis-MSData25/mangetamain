@@ -31,7 +31,8 @@ import plotly.graph_objects as go
 import streamlit as st
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-
+import re
+import base64
 
 # Ajouter le répertoire parent au path pour importer les modules locaux
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -439,8 +440,8 @@ def display_variable_statistics(data: pd.DataFrame) -> None:
             
             logger.debug(f"Variable sélectionnée pour histogramme : {selected_var}")
             
-            # Paramètres de l'histogramme
-            n_bins = st.slider("Nombre de bins", min_value=10, max_value=100, value=50, step=5)
+
+
             
             # Affichage des statistiques sous forme de métriques
             _display_descriptive_statistics(data, selected_var, available_vars[selected_var])
@@ -1021,9 +1022,9 @@ def _generate_prediction_plot(plot_data: pd.DataFrame,
     lr_model.fit(X_train, y_train)
     rf_model.fit(X_train, y_train)
     
-    # Générer les prédictions
-    y_pred_lr = lr_model.predict(X_plot)
-    y_pred_rf = rf_model.predict(X_plot)
+
+
+
     
     # Créer le graphique
     fig_pred = _create_prediction_figure(
@@ -1216,7 +1217,7 @@ def _finalize_prediction_plot(fig_pred: go.Figure,
     # Afficher les valeurs des autres variables utilisées
     if len(other_features) > 0:
         st.info(
-            f" **Variables fixées pour la prédiction:** " + 
+            " **Variables fixées pour la prédiction:** " + 
             ", ".join([f"{feat}: {plot_data[feat].mean():.3f}" 
                       for feat in other_features if feat in plot_data.columns])
         )
@@ -1259,10 +1260,10 @@ def display_ols_coefficients(model_results: dict) -> None:
         st.caption("Significativité : *** p<0.001, ** p<0.01, * p<0.05")
 
 
-import streamlit as st
-from pathlib import Path
-import re
-import base64
+
+
+
+
 
 def display_about_tab() -> None:
     """ Affiche le contenu de l'onglet "À propos".
