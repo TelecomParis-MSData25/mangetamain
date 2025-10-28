@@ -8,7 +8,6 @@ utilisées pour l'analyse statistique et la modélisation du dataset de recettes
 import pytest
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 import dataset_analysis.utils as utils
 
