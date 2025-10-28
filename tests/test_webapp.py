@@ -13,6 +13,8 @@ import sys
 import inspect
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
+#Import de la webapp
+import src.webapp as webapp
 
 # Ajouter le répertoire source au path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -42,11 +44,6 @@ sklearn_ensemble_mock = MagicMock()
 sys.modules['sklearn'] = sklearn_mock
 sys.modules['sklearn.linear_model'] = sklearn_linear_model_mock
 sys.modules['sklearn.ensemble'] = sklearn_ensemble_mock
-
-#Import de la webapp
-import src.webapp as webapp
-
-
 class TestSetupLogging:
     """Tests pour la configuration du système de logging."""
     
@@ -721,7 +718,7 @@ class TestPredictionVisualization:
         mock_lr_model.predict.return_value = np.random.normal(4, 0.3, 100)
         mock_rf_model.predict.return_value = np.random.normal(4, 0.3, 100)
         
-        with patch.object(webapp, 'go') as mock_go:
+        with patch.object(webapp, 'go') :
             webapp._add_prediction_curves(
                 mock_fig, plot_data, model_features, 'log_minutes',
                 mock_lr_model, mock_rf_model, sample_data
