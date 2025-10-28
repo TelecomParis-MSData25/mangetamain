@@ -1,7 +1,7 @@
 [project]
 name = "mangetamain"
 version = "0.1.0"
-description = "Add your description here"
+description = "Projet de la matière DATA702-Kit_Big_Data du Mastère Spécialisé Data de Télécom Paris"
 readme = "README.md"
 requires-python = ">=3.12"
 
@@ -15,6 +15,8 @@ dependencies = [
     "seaborn>=0.13.2",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=0.24.0",
     "sphinx>=8.2.3",
     "streamlit>=1.50.0",
     "scipy>=1.16.2",
@@ -29,6 +31,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
 
 addopts = [
     "--strict-markers",
@@ -78,6 +81,8 @@ exclude_lines = [
 ]
 [dependency-groups]
 dev = [
+    "pytest-asyncio>=1.2.0",
+    "pytest-mock>=3.15.1",
     "ruff>=0.7.0",
 ]
 

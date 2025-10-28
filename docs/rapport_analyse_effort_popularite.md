@@ -49,11 +49,11 @@ $$\text{largeur\_bin} = \frac{2 \times \text{IQR}(x)}{n^{1/3}}$$
 
 Cette approche garantit une représentation visuelle équilibrée des distributions asymétriques.
 
-![Histogrammes des variables minutes, n_steps et n_ingredients](./images/histogramme_var_minutes_n_steps_n_ingredients.png "Histogrammes des variables d'effort culinaire")
+![Histogrammes des variables minutes, n_steps et n_ingredients](./images/histogramme_var_minutes_n_steps_n_ingredients.png)
 
 Les histogrammes révèlent clairement les asymétries mentionnées, justifiant les transformations logarithmiques appliquées par la suite.
 
-![Box plot des variables minutes, n_steps et n_ingredients](./images/boxplot_var_minutes_n_steps_n_ingredients.png "Identification des outliers")
+![Box plot des variables minutes, n_steps et n_ingredients](./images/boxplot_var_minutes_n_steps_n_ingredients.png)
 
 Les boxplots confirment la présence d'outliers extrêmes, particulièrement pour la variable `minutes` avec des recettes dépassant 1000 minutes.
 
@@ -184,7 +184,7 @@ La heatmap révèle des corrélations très faibles (toutes < |0.05|) entre les 
 
 **Pattern en U observé** : Les recettes très simples (Q1) et très complexes (Q4) sont légèrement plus populaires que les recettes d'effort moyen.
 
-![Courbe en U de la popularité par quartile](./images/effort_popularite_pattern_U.png "Pattern en U : popularité selon l'effort culinaire")
+![Courbe en U de la popularité par quartile](./images/effort_popularite_pattern_U.png)
 
 Le graphique illustre le pattern en U détecté : bien que statistiquement significatif, l'amplitude de variation (0.011 point) reste pratiquement négligeable, confirmant que l'effort n'a pas d'impact substantiel sur la popularité.
 
