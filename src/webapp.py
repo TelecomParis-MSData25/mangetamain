@@ -5,12 +5,12 @@ le lien entre effort culinaire et popularité des recettes.
 
 from __future__ import annotations
 
+import base64
 import inspect
 import logging
+import re
 import sys
 from pathlib import Path
-from typing import Optional, Tuple
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -30,7 +30,7 @@ from webapp_utils import (  # noqa: E402
     infer_filter_options,
 )
 
-logger: Optional[logging.Logger] = None
+logger: logging.Logger | None = None
 
 
 def _setup_logging() -> logging.Logger:
@@ -83,13 +83,13 @@ def _plotly_display(fig: go.Figure, *, width: str = "stretch") -> None:
         st.plotly_chart(fig, config=config)
 
 
-def _import_analysis_modules() -> Tuple[bool, Optional[object]]:
+def _import_analysis_modules() -> tuple[bool, object | None]:
     """
     Tente d'importer les modules d'analyse réels.
 
     Returns
     -------
-    Tuple[bool, Optional[object]]
+    Tuple[bool, object | None]
         Indique si les modules sont disponibles et, le cas échéant,
         retourne la fonction build_analysis_dataset.
     """
@@ -225,7 +225,7 @@ def _configure_streamlit() -> None:
     )
 
 
-def _prepare_analysis_data() -> Tuple[pd.DataFrame, str]:
+def _prepare_analysis_data() -> tuple[pd.DataFrame, str]:
     """Charge les données réelles si possible, sinon génère un échantillon simulé."""
     has_real_data, build_analysis_dataset = _import_analysis_modules()
     if has_real_data and build_analysis_dataset:
@@ -312,24 +312,19 @@ def _render_sidebar(data_origin: str, dataset: pd.DataFrame) -> pd.DataFrame:
         bayes_min = float(filtered["bayes_mean"].min())
         bayes_max = float(filtered["bayes_mean"].max())
         if bayes_max > bayes_min:
-            default_rating = float(filtered["bayes_mean"].quantile(0.25))
-            default_rating = min(max(default_rating, bayes_min), bayes_max)
             min_rating = st.sidebar.slider(
                 "Note bayésienne minimale",
                 min_value=bayes_min,
                 max_value=bayes_max,
-                value=default_rating,
+                value=bayes_min,
                 step=0.1,
             )
             filtered = filtered[filtered["bayes_mean"] >= min_rating]
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(f"**Recettes disponibles :** {len(dataset):,}")
-    st.sidebar.markdown(f"**Recettes retenues après filtrage :** {len(filtered):,}")
     return filtered
 
 
-def _is_valid_number(value: Optional[float]) -> bool:
+def _is_valid_number(value: float | None) -> bool:
     return value is not None and not np.isnan(value)
 
 
@@ -374,7 +369,7 @@ def _compute_story_indicators(data: pd.DataFrame, quartile_pattern) -> dict:
     return indicators
 
 
-def _render_metrics(indicators: dict, total_count: Optional[int] = None) -> None:
+def _render_metrics(indicators: dict, total_count: int | None = None) -> None:
     """Affiche les principaux compteurs en haut de page."""
     col1, col2, col3 = st.columns(3)
 
@@ -819,6 +814,53 @@ def _render_scenario_planner(data: pd.DataFrame) -> None:
     )
 
 
+def display_about_tab() -> None:
+    """
+    Affiche le contenu de l'onglet "À propos".
+
+    Notes
+    -----
+    Charge le fichier rapport_analyse_effort_popularite.md ou affiche des informations par défaut.
+    """
+    logger.debug("Chargement de l'onglet À propos")
+
+    rapport_path = Path(__file__).resolve().parents[1] / "docs" / "rapport_analyse_effort_popularite.md"
+    images_dir = rapport_path.parent / "images"
+
+    try:
+        rapport_content = rapport_path.read_text(encoding="utf-8")
+
+        def replace_local_images(match: re.Match[str]) -> str:
+            """Remplace les images locales par un encodage base64 embarqué."""
+            img_path = images_dir / match.group(1)
+            if img_path.exists():
+                data = base64.b64encode(img_path.read_bytes()).decode()
+                suffix = img_path.suffix.lower().lstrip(".")
+                return f"![](data:image/{suffix};base64,{data})"
+            logger.warning("Image introuvable : %s", img_path)
+            return match.group(0)
+
+        pattern = r"!\[[^\]]*\]\((?:\.\/)?images\/([^)]+)\)"
+        rapport_content = re.sub(pattern, replace_local_images, rapport_content)
+
+        st.markdown(rapport_content, unsafe_allow_html=True)
+        logger.debug("rapport_analyse_effort_popularite chargé avec succès")
+
+    except FileNotFoundError:
+        logger.warning("Fichier rapport_analyse_effort_popularite.md non trouvé")
+        st.error("Impossible de charger `docs/rapport_analyse_effort_popularite.md`.")
+        st.markdown(
+            """
+            ## À propos du projet
+            Cette application raconte l'analyse de la relation entre effort culinaire et popularité.
+            Consultez le dépôt GitHub pour accéder au rapport détaillé et aux scripts d'analyse.
+            """
+        )
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.error("Erreur lors du chargement du rapport_analyse_effort_popularite : %s", exc)
+        st.error(f"Erreur : {exc}")
+
+
 def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int) -> None:
     """Déroulé narratif principal adapté à un public non spécialiste."""
     if data.empty:
@@ -838,8 +880,8 @@ def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int
         "l'aide de vos propres filtres."
     )
 
-    story_tab, explorer_tab, scenario_tab = st.tabs(
-        ["Storytelling", "Explorer les données", "Trouver ma recette idéale"]
+    story_tab, explorer_tab, scenario_tab, about_tab = st.tabs(
+        ["Storytelling", "Explorer les données", "Trouver ma recette idéale", "À propos"]
     )
 
     with story_tab:
@@ -899,6 +941,9 @@ def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int
 
     with scenario_tab:
         _render_scenario_planner(data)
+
+    with about_tab:
+        display_about_tab()
 
 
 def main() -> None:

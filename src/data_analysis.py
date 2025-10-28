@@ -7,8 +7,6 @@ import pandas as pd
 import numpy as np
 import ast
 from collections import Counter
-from typing import List, Dict, Optional
-
 
 class RecipeDataAnalyzer:
     """Classe pour analyser les données de recettes."""
@@ -34,12 +32,12 @@ class RecipeDataAnalyzer:
         self.recipe_data = pd.read_csv(self.csv_path)
         return self.recipe_data
     
-    def get_basic_info(self) -> Dict[str, any]:
+    def get_basic_info(self) -> dict[str, any]:
         """
         Retourne des informations de base sur le dataset.
         
         Returns:
-            Dict: Informations de base (nombre de recettes, variables, valeurs manquantes)
+            dict: Informations de base (nombre de recettes, variables, valeurs manquantes)
         """
         if self.recipe_data is None:
             raise ValueError("Les données doivent être chargées d'abord avec load_data()")
@@ -53,12 +51,12 @@ class RecipeDataAnalyzer:
         }
         return info
     
-    def analyze_minutes(self) -> Dict[str, any]:
+    def analyze_minutes(self) -> dict[str, any]:
         """
         Analyse la variable 'minutes' (temps de préparation).
         
         Returns:
-            Dict: Statistiques sur les minutes
+            dict: Statistiques sur les minutes
         """
         if self.recipe_data is None:
             raise ValueError("Les données doivent être chargées d'abord avec load_data()")
@@ -74,7 +72,7 @@ class RecipeDataAnalyzer:
         }
         return minutes_stats
     
-    def remove_outliers_minutes(self, max_minutes: Optional[int] = None) -> pd.DataFrame:
+    def remove_outliers_minutes(self, max_minutes: int | None = None) -> pd.DataFrame:
         """
         Supprime les outliers de la variable minutes.
         
@@ -114,12 +112,12 @@ class RecipeDataAnalyzer:
         self.cleaned_data = cleaned
         return cleaned
     
-    def analyze_contributors(self) -> Dict[str, any]:
+    def analyze_contributors(self) -> dict[str, any]:
         """
         Analyse les contributeurs de recettes.
         
         Returns:
-            Dict: Statistiques sur les contributeurs
+            dict: Statistiques sur les contributeurs
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -137,7 +135,7 @@ class RecipeDataAnalyzer:
         }
         return stats
     
-    def parse_list_column(self, column_name: str) -> List[str]:
+    def parse_list_column(self, column_name: str) -> list[str]:
         """
         Parse une colonne contenant des listes sous forme de strings.
         
@@ -145,7 +143,7 @@ class RecipeDataAnalyzer:
             column_name (str): Nom de la colonne à parser
             
         Returns:
-            List[str]: Liste de tous les éléments extraits
+            list[str]: liste de tous les éléments extraits
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -166,12 +164,12 @@ class RecipeDataAnalyzer:
                 
         return all_items
     
-    def analyze_ingredients(self) -> Dict[str, any]:
+    def analyze_ingredients(self) -> dict[str, any]:
         """
         Analyse les ingrédients des recettes.
         
         Returns:
-            Dict: Statistiques sur les ingrédients
+            dict: Statistiques sur les ingrédients
         """
         all_ingredients = self.parse_list_column('ingredients')
         ingredient_counts = Counter(all_ingredients)
@@ -184,12 +182,12 @@ class RecipeDataAnalyzer:
         }
         return stats
     
-    def analyze_tags(self) -> Dict[str, any]:
+    def analyze_tags(self) -> dict[str, any]:
         """
         Analyse les tags des recettes.
         
         Returns:
-            Dict: Statistiques sur les tags
+            dict: Statistiques sur les tags
         """
         all_tags = self.parse_list_column('tags')
         tag_counts = Counter(all_tags)
@@ -239,12 +237,12 @@ class RecipeDataAnalyzer:
         
         return processed_data
     
-    def analyze_nutrition(self) -> Dict[str, any]:
+    def analyze_nutrition(self) -> dict[str, any]:
         """
         Analyse les données nutritionnelles.
         
         Returns:
-            Dict: Statistiques nutritionnelles
+            dict: Statistiques nutritionnelles
         """
         nutrition_data = self.process_nutrition_scores()
         
@@ -266,12 +264,12 @@ class RecipeDataAnalyzer:
         
         return stats
     
-    def analyze_steps_and_ingredients_count(self) -> Dict[str, any]:
+    def analyze_steps_and_ingredients_count(self) -> dict[str, any]:
         """
         Analyse le nombre d'étapes et d'ingrédients.
         
         Returns:
-            Dict: Statistiques sur n_steps et n_ingredients
+            dict: Statistiques sur n_steps et n_ingredients
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -295,12 +293,12 @@ class RecipeDataAnalyzer:
         }
         return stats
     
-    def get_complete_analysis(self) -> Dict[str, any]:
+    def get_complete_analysis(self) -> dict[str, any]:
         """
         Effectue une analyse complète du dataset.
         
         Returns:
-            Dict: Analyse complète
+            dict: Analyse complète
         """
         # Charger les données si pas déjà fait
         if self.recipe_data is None:

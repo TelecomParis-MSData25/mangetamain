@@ -8,7 +8,7 @@ visualisations et aux résumés statistiques sans dépendre directement de Strea
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from collections.abc import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,7 @@ class DescriptiveStats:
     q3: float
     count: int
 
-    def to_metric_dict(self) -> Dict[str, float]:
+    def to_metric_dict(self) -> dict[str, float]:
         """Retourne un mapping simple, utile pour l'affichage."""
         return {
             "mean": self.mean,
@@ -60,7 +60,7 @@ class RegressionResult:
 class EffortPatternData:
     """Données permettant de tracer l'hypothèse et la réalité observée."""
 
-    categories: List[str]
+    categories: list[str]
     expected: np.ndarray
     observed: np.ndarray
 
@@ -77,16 +77,16 @@ class QuartilePatternData:
 class FilterOptions:
     """Bornes et valeurs possibles pour construire les filtres Streamlit."""
 
-    age_range: Optional[Tuple[float, float]]
-    interactions_range: Optional[Tuple[int, int]]
-    effort_categories: List[str]
+    age_range: tuple[float, float] | None
+    interactions_range: tuple[int, int] | None
+    effort_categories: list[str]
 
 
 def compute_histogram_figure(
     series: pd.Series,
     *,
     var_label: str,
-    nbins: Optional[int] = None,
+    nbins: int | None = None,
 ) -> go.Figure:
     """
     Génère une figure Plotly pour l'histogramme d'une série numérique.
@@ -144,7 +144,7 @@ def compute_descriptive_stats(series: pd.Series) -> DescriptiveStats:
     )
 
 
-def fit_simple_regression(data: pd.DataFrame, x_col: str, y_col: str) -> Optional[RegressionResult]:
+def fit_simple_regression(data: pd.DataFrame, x_col: str, y_col: str) -> RegressionResult | None:
     """
     Ajuste une régression linéaire simple et retourne les paramètres principaux.
 
@@ -180,7 +180,7 @@ def fit_simple_regression(data: pd.DataFrame, x_col: str, y_col: str) -> Optiona
     )
 
 
-def compute_effort_pattern(data: pd.DataFrame) -> Optional[EffortPatternData]:
+def compute_effort_pattern(data: pd.DataFrame) -> EffortPatternData | None:
     """
     Calcule les valeurs attendues et observées par catégorie d'effort.
 
@@ -205,7 +205,7 @@ def compute_effort_pattern(data: pd.DataFrame) -> Optional[EffortPatternData]:
         "Difficile",
         "Très Difficile",
     ]
-    ordered_categories: List[str] = [
+    ordered_categories: list[str] = [
         cat for cat in preferred_order if cat in aggregated.index
     ]
     ordered_categories.extend(
@@ -226,7 +226,7 @@ def compute_quartile_pattern(
     data: pd.DataFrame,
     *,
     effort_col_candidates: Iterable[str] = ("effort_quartile", "effort_score", "score_effort"),
-) -> Optional[QuartilePatternData]:
+) -> QuartilePatternData | None:
     """
     Retourne la moyenne de `bayes_mean` par quartile d'effort.
 
@@ -276,11 +276,11 @@ def compute_quartile_pattern(
 
 def describe_numeric_columns(
     data: pd.DataFrame, columns: Sequence[str]
-) -> Dict[str, DescriptiveStats]:
+) -> dict[str, DescriptiveStats]:
     """
     Calcule les DescriptiveStats pour un ensemble de colonnes numériques.
     """
-    summaries: Dict[str, DescriptiveStats] = {}
+    summaries: dict[str, DescriptiveStats] = {}
     for column in columns:
         if column in data.columns and np.issubdtype(data[column].dtype, np.number):
             summaries[column] = compute_descriptive_stats(data[column])
@@ -291,9 +291,9 @@ def infer_filter_options(data: pd.DataFrame) -> FilterOptions:
     """
     Détermine les bornes utiles pour configurer les filtres latéraux.
     """
-    age_range: Optional[Tuple[float, float]] = None
-    interactions_range: Optional[Tuple[int, int]] = None
-    effort_categories: List[str] = []
+    age_range: tuple[float, float] | None = None
+    interactions_range: tuple[int, int] | None = None
+    effort_categories: list[str] = []
 
     if "age_months" in data.columns:
         age_series = data["age_months"].dropna()
