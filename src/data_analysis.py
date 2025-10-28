@@ -317,7 +317,7 @@ class RecipeDataAnalyzer:
         return analysis
 
 
-def main():
+def main():  # pragma: no cover
     """Fonction principale pour tester l'analyseur."""
     analyzer = RecipeDataAnalyzer('data/RAW_recipes.csv')
     analyzer.load_data()
@@ -364,5 +364,5 @@ def main():
         print(f"  - {tag}: {count:,}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
