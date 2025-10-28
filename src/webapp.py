@@ -1010,7 +1010,7 @@ def _generate_prediction_plot(plot_data: pd.DataFrame,
     sample_data = plot_data.sample(sample_display_size)
     
     # Préparer les données d'entraînement
-    X_plot = sample_data[model_features].values
+    #X_plot = sample_data[model_features].values
     y_true = sample_data[selected_target].values
     X_train = plot_data[model_features].values
     y_train = plot_data[selected_target].values
