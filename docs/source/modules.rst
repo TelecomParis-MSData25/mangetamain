@@ -1,7 +1,10 @@
-src
-===
+API Reference
+=============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    webapp
+   data_analysis
+   logger
+   dataset_analysis

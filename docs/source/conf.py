@@ -7,7 +7,11 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../../src'))
+PROJECT_ROOT = os.path.abspath('../..')
+SRC_DIR = os.path.join(PROJECT_ROOT, 'src')
+
+sys.path.insert(0, PROJECT_ROOT)
+sys.path.insert(0, SRC_DIR)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -26,7 +30,10 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary',
 ]
+# Générer automatiquement les sommaires des modules
+autosummary_generate = True
 # Configuration pour Napoleon (Google/NumPy style docstrings)
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
