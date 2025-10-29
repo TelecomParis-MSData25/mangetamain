@@ -4,6 +4,7 @@ import logging
 import sys
 import types
 from unittest.mock import Mock
+from contextlib import nullcontext
 
 import numpy as np
 import pandas as pd
@@ -560,6 +561,7 @@ def test_render_storytelling_full_flow(monkeypatch):
     data = webapp.generate_sample_data(120)
     dummy_st = DummyStreamlit()
     monkeypatch.setitem(sys.modules, "streamlit", dummy_st)
+    monkeypatch.setattr(dummy_st, "container", lambda: nullcontext(), raising=False)
     monkeypatch.setattr(webapp, "st", dummy_st)
     monkeypatch.setattr(webapp.Image, "open", lambda *_: object())
     monkeypatch.setattr(webapp.px, "scatter", lambda *a, **k: go.Figure())
