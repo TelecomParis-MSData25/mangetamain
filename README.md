@@ -47,7 +47,6 @@ La question centrale qui guide le projet est : **« En quoi l’effort culinaire
 *Par défaut, le serveur Jira est accessible à l'adresse suivante : <https://benjaminlepourtois.atlassian.net/jira/software/projects/MTM/boards/3> mais n'est accessible qu'aux membres de l'équipe. Je peux vous fournir un accès si nécessaire.*
 
 ---
----
 
 ## 🌐 Application en ligne
 
