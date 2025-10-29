@@ -70,7 +70,7 @@ def _ensure_raw_data_available() -> None:
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None  # pour mypy
     spec.loader.exec_module(module)  # type: ignore[call-arg]
-    module.download_and_extract()  # type: ignore[attr-defined]
+    module.download_and_extract(DATA_DIR)  # type: ignore[attr-defined]
 
 
 def load_raw_datasets() -> tuple[pd.DataFrame, pd.DataFrame]:
