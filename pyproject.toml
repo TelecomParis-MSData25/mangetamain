@@ -1,6 +1,6 @@
 [project]
 name = "mangetamain"
-version = "0.1.0"
+version = "1.0.0"
 description = "Projet de la matière DATA702-Kit_Big_Data du Mastère Spécialisé Data de Télécom Paris"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -42,7 +42,7 @@ addopts = [
     "--cov-report=xml",
     "--cov-fail-under=85",
     "--cov-branch",
-    "-v"
+    "-v",
 ]
 
 markers = [
@@ -51,9 +51,7 @@ markers = [
     "slow: marks tests as slow",
 ]
 
-pythonpath = [
-    "."
-]
+pythonpath = ["."]
 
 [tool.coverage.run]
 source = ["dataset_analysis"]
@@ -80,14 +78,8 @@ exclude_lines = [
     "@(abc\\.)?abstractmethod",
 ]
 [dependency-groups]
-dev = [
-    "pytest-asyncio>=1.2.0",
-    "pytest-mock>=3.15.1",
-    "ruff>=0.7.0",
-]
+dev = ["pytest-asyncio>=1.2.0", "pytest-mock>=3.15.1", "ruff>=0.7.0"]
 
 [tool.ruff]
 target-version = "py312"
-extend-exclude = [
-    "dataset_analysis/**/*.ipynb",
-]
+extend-exclude = ["dataset_analysis/**/*.ipynb"]
