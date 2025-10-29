@@ -447,6 +447,29 @@ def _render_patterns(pattern, quartile_pattern) -> None:
         )
         _plotly_display(fig, width="stretch")
 
+        # Encart d'observations figées pour le graphique d'effort
+        with st.container():
+            st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #FF6B6B; margin: 20px 0;">
+                <h5 style="color: #2c3e50; margin-top: 0;">Contexte - Graphique d'effort</h5>
+                <p style="color: #34495e; line-height: 1.6;">Ce graphique compare la <strong>popularité moyenne des recettes</strong> (axe vertical) en fonction du <strong>niveau d'effort perçu</strong> (axe horizontal).</p>
+                <p style="color: #34495e; line-height: 1.6;">Deux lignes sont présentées :</p>
+                <ul style="color: #34495e; line-height: 1.6;">
+                    <li><strong>Ligne grise pointillée</strong> : une intuition courante — <em>plus une recette demande d'effort, moins elle est populaire</em>.</li>
+                    <li><strong>Ligne rouge</strong> : les <strong>données observées</strong>.</li>
+                </ul>
+                <h5 style="color: #2c3e50; margin-top: 15px;">Observations</h5>
+                <ul style="color: #34495e; line-height: 1.6;">
+                    <li><strong>Stabilité inattendue :</strong> contrairement à l'intuition, la popularité observée reste <strong>stable</strong> quel que soit le niveau de difficulté perçue.</li>
+                    <li><strong>Niveau de popularité :</strong> les notes moyennes sont proches, y compris pour les recettes jugées « très difficiles ».</li>
+                    <li><strong>Pas de pénalité pour la complexité :</strong> les recettes exigeantes ne sont <strong>pas moins appréciées</strong> que les recettes faciles.</li>
+                </ul>
+                <h5 style="color: #2c3e50; margin-top: 15px;">Interprétations</h5>
+                <p style="color: #34495e; line-height: 1.6;">Il semblerait que la <strong>perception de l'effort</strong> n'influence pas directement la popularité des recettes — du moins <strong>pas de manière linéaire ou négative</strong>.<br></p>
+            </div>
+            """, unsafe_allow_html=True)
+
+
     if quartile_pattern is not None and not quartile_pattern.means.empty:
         fig_quartile = go.Figure()
         fig_quartile.add_trace(
@@ -468,6 +491,29 @@ def _render_patterns(pattern, quartile_pattern) -> None:
             template="plotly_white",
         )
         _plotly_display(fig_quartile, width="stretch")
+
+        # Encart d'observations figées pour le pattern en U
+        with st.container():
+            st.markdown("""
+                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #FF6B6B; margin: 20px 0;">
+                <h5 style="color: #2c3e50; margin-top: 15px;">Contexte - Pattern en U</h5>
+                <ul style="color: #34495e; line-height: 1.6;">
+                    <li>L’axe horizontal découpe les recettes en 4 groupes d’effort (quartiles) : Q1 = les plus simples … Q4 = les plus complexes.</li>
+                    <li>L’axe vertical indique la note moyenne de popularité des recettes.</li>
+                </ul>
+                <h5 style="color: #2c3e50; margin-top: 15px;">Observations</h5>
+                <ul style="color: #34495e; line-height: 1.6;">
+                    <li>La courbe forme un petit “U” : les recettes très simples (Q1) et très complexes (Q4) ont une popularité légèrement plus élevée que celles d’effort moyen (Q2–Q3).</li>
+                    <li>L’écart est minuscule entre le minimum (Q3) et le maximum (Q1/Q4). Autrement dit, toutes les catégories ont quasiment la même note.</li>
+                </ul>
+                <h5 style="color: #2c3e50; margin-top: 15px;">Interprétations</h5>
+                <ul style="color: #34495e; line-height: 1.6;">
+                    <li> On peut parler d’un “pattern en U” (statistiquement détectable), mais l’amplitude est tellement faible qu’elle est sans impact concret pour l'utilisateur.</li>
+                    <p>Ainsi, même si la forme en U existe, la popularité reste quasi identique quel que soit le niveau d’effort.</p>
+                </ul>
+            </div>
+
+            """, unsafe_allow_html=True)
 
 
 def _render_methodology_section() -> None:
@@ -536,7 +582,15 @@ def _render_correlation_matrix(data: pd.DataFrame) -> None:
         horizontal=True,
         key="corr_method",
     )
-
+    st.caption(
+                """
+                **Pearson** permet de mesurer la force d’une **relation linéaire entre deux variables numériques**. Il est conseillé de l’appliquer sur des **valeurs brutes**, qui contiennent **peu d’outliers** ou de fortes asymétries.
+                
+                **Spearman** permet de mesurer la force d’une **relation monotone croissante ou décroissante**, même si elle n’est pas linéaire. La méthode de calcul de Spearman est plus plus **robuste aux outliers** et **adaptée aux distributions non normales** notamment.
+                
+                **Kendall** permet d’évaluer la monotonicité, mais à partir de la **proportion de paires concordantes/discordantes**. Cette méthode de calcul est **très robuste sur petits échantillons** et en **présence de nombreux ex-æquo**.
+                """
+    )
     corr = numeric_df.corr(method=method_map[method_choice]).replace([np.inf, -np.inf], np.nan)
     corr = corr.fillna(0.0)
 
@@ -557,6 +611,45 @@ def _render_correlation_matrix(data: pd.DataFrame) -> None:
         margin=dict(l=0, r=0, t=80, b=0),
     )
     _plotly_display(fig, width="stretch")
+    with st.container():
+        st.markdown("""
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #FF6B6B; margin: 20px 0;">
+        <h4 style="color: #2c3e50; margin-top: 0;">Contexte - Matrice de corrélation</h4>
+        <ul style="color: #34495e; line-height: 1.6;">
+            <p>Chaque case mesure à quel point deux variables évoluent ensemble (de –1 à +1).</p>
+            <li><strong>+1</strong> : elles montent/descendent <strong>ensemble</strong> (corrélation positive parfaite).<br></li>
+            <li><strong>0</strong> : <strong>aucun lien linéaire</strong> détecté.<br></li>
+            <li><strong>–1</strong> : quand l’une monte, l’autre <strong>baisse</strong> (corrélation négative parfaite).<br></li>
+            <p>La <strong>couleur</strong> et le <strong>nombre</strong> indiquent la force du lien.</p>
+
+        <h4 style="color: #2c3e50; margin-top: 0;">Observations avec interprétations</h4>
+        <ul style="color: #34495e; line-height: 1.6;">
+            <li><strong>Les indicateurs d’effort</strong>
+            <p><code>log_minutes</code> (durée) ↔ <code>effort_score</code> → très forte association.<br>
+            <code>n_ingredients</code> ↔ <code>effort_score</code> → forte association.<br>
+            <code>log_minutes</code> ↔ <code>n_ingredients</code> → association modérée.<br> Une déduction possible serait que plus il y a d’ingrédients et plus c’est long, plus le <strong>score d’effort</strong> est élevé (cohérent). Mais le coefficient de corrélation reste trop faible pour valider cette déduction.</p>
+            </li>
+        </ul>
+        <ul style="color: #34495e; line-height: 1.6;">
+            <li><strong>La popularité et l’effort</strong>
+            <p><code>bayes_mean</code> (note moyenne “robuste”) et <code>wilson_lb</code> (borne de confiance) ont des corrélations <strong>qui tendent vers 0</strong> avec <code>effort_score</code>, <code>log_minutes</code> et <code>n_ingredients</code>.<br>
+            <strong>Il n'y a donc pas de corrélation entre l'effort et la popularité des recettes </strong>.</p>
+            </li>
+        </ul>
+        <ul style="color: #34495e; line-height: 1.6;">       
+            <li><strong>Activité des utilisateurs et note donnée</strong>
+            <p><code>n_interactions</code> (nombre d’avis/notations) ↔ <code>wilson_lb</code> (modéré).<br>
+            Plus il y a d’interactions, plus l’estimation de la popularité est <strong>faiblement</strong> meilleure/plus fiable.<br>
+            <em>Cependant les notes données par les utilisateurs étant majoritairement hautes, nos interprétations sont donc biaisées.</em></p>
+            </li>
+        </ul>
+        <ul style="color: #34495e; line-height: 1.6;"> 
+            <li><strong>Texte et longueur des étapes</strong>
+            <p><code>avg_words_per_step</code> a des corrélations <strong>faibles</strong> avec le reste des variables (proche de zéro).<br>
+            La <strong>verbosité</strong> des instructions n’explique donc pas la popularité.</p>
+            </li>
+        </ul>
+        </div>""", unsafe_allow_html=True)
 
 
 def _render_explorer(data: pd.DataFrame) -> None:
@@ -646,6 +739,18 @@ def _render_explorer(data: pd.DataFrame) -> None:
 
     _plotly_display(fig, width="stretch")
 
+    # Encart d'descriptif
+    with st.container():
+        st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #FF6B6B; margin: 20px 0;">
+            <ul style="color: #34495e; line-height: 1.6;">
+                <p>Exploration utile pour visualiser la régression linéaire entre deux variables</p>
+                <p>Une régression linéaire est une méthode statistique qui modélise la relation entre une variable cible y et une ou plusieurs variables explicatives x (le nuage de points), par une droite (ici rouge)</p>
+                <p>Le fait d'observer une droite quasiment horizontale, permet de comprendre qu'il n'y a aucun effet linéaire de x sur y, en d'autres termes, les variations de x n'impliquent pas des variations sur y.</p>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
     hist_var = st.selectbox(
         "Distribution à explorer",
         available_effort + available_popularity,
@@ -654,6 +759,16 @@ def _render_explorer(data: pd.DataFrame) -> None:
     )
     hist_fig = compute_histogram_figure(data[hist_var], var_label=hist_var)
     _plotly_display(hist_fig, width="stretch")
+
+    # Encart d'descriptif
+    with st.container():
+        st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #FF6B6B; margin: 20px 0;">
+            <ul style="color: #34495e; line-height: 1.6;">
+                <p>Exploration utile pour visualiser la distribution des valeurs. Pour certaines valeurs la distribution est difficilement interprétable.</p>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
     if "effort_category" in data.columns:
         cat_counts = (
@@ -675,6 +790,15 @@ def _render_explorer(data: pd.DataFrame) -> None:
         fig_categories.update_yaxes(tickformat=".0%")
         _plotly_display(fig_categories, width="stretch")
 
+    # Encart d'descriptif
+    with st.container():
+        st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #FF6B6B; margin: 20px 0;">
+            <ul style="color: #34495e; line-height: 1.6;">
+                <p>Exploration utile pour comprendre la répartition des recettes par niveau d'effort. Cette répartition n'est pas homogène.</p>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
 def _render_scenario_planner(data: pd.DataFrame) -> None:
     """Assistant interactif pour trouver une recette selon ses contraintes."""
@@ -875,9 +999,9 @@ def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int
 
     st.title("En quoi l'effort culinaire influence-t-il la popularité des recettes ?")
     st.write(
-        "On part de l'intuition qu'une recette très exigeante décourage les cuisiniers. "
-        "Voyons si les données confirment ce ressenti, puis explorons les leviers à "
-        "l'aide de vos propres filtres."
+        "On part de l'intuition qu'une recette très exigeante décourage les cuisiniers, clients du site web. "
+        "Voyons si l'analyse des données confirment ce ressenti, et explorons les à l'aide "
+        "de divers filtres."
     )
 
     story_tab, explorer_tab, scenario_tab, about_tab = st.tabs(
@@ -885,31 +1009,32 @@ def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int
     )
 
     with story_tab:
-        st.subheader("1. Nos données en bref")
+        st.subheader("1. Vue d'ensemble de l'étude")
         st.write(
             "Chaque recette combine un score d'effort (temps, étapes, ingrédients, complexité) "
             "et des indicateurs de popularité (notes, confiance, interactions). "
-            "Les compteurs ci-dessous reflètent votre sélection actuelle."
+            "Les compteurs ci-dessous reflètent la sélection actuelle."
         )
         _render_metrics(indicators, total_recipes)
 
         st.subheader("2. Intuition vs réalité")
-        st.write(
-            "La courbe grisée représente l'idée reçue : plus l'effort augmente, plus la note "
-            "baisse. La courbe orange montre la réalité observée sur les données filtrées."
-        )
+
         _render_patterns(pattern, quartile_pattern)
 
+
+        st.write(
+            "Valeurs précises des affichages"
+        )
         if _is_valid_number(indicators["spearman"]):
             st.caption(
                 f"Corrélation effort/popularité (Spearman) : {indicators['spearman']:.3f} "
-                "(quasi nulle ⇒ pas de lien linéaire direct)."
+                "(tend vers zéro : il n'y a donc pas de lien linéaire direct)."
             )
 
         if _is_valid_number(indicators["quartile_amplitude"]):
             st.caption(
                 f"Écart maximal entre quartiles : {indicators['quartile_amplitude']:.3f} point "
-                "sur une échelle de 5. Variation faible ⇒ l'effort seul ne suffit pas à expliquer "
+                "sur une échelle de 5. La variation est faible ⇒ l'effort seul ne suffit pas à expliquer "
                 "la popularité."
             )
 
@@ -920,11 +1045,11 @@ def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int
         )
         _render_correlation_matrix(data)
 
-        st.subheader("4. Ce qu'on retient")
+        st.subheader("4. Retours")
         conclusions = [
-            "Les notes restent stables autour de la moyenne, quel que soit l'effort requis.",
-            "Les recettes très simples et très exigeantes performent légèrement mieux que celles d'effort moyen : un léger pattern en U.",
-            "L'effort culinaire seul n'explique pas la popularité : mise en scène, contexte et saison jouent un rôle complémentaire.",
+            "L'effort culinaire n'explique pas la popularité.",
+            "Pour vous en convaincre et vous approprier l'analyse, interagissez avec les données dans le second onglet !",
+            "Une analyse plus complète est rédigée dans le dernier onglet 'À propos'.",
         ]
         st.markdown("\n".join(f"- {item}" for item in conclusions))
 
