@@ -212,9 +212,32 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Kaggle CLI
+        run: python -m pip install --upgrade kaggle
+
+      - name: Configure Kaggle credentials
+        if: env.KAGGLE_USERNAME != '' && env.KAGGLE_KEY != ''
+        run: |
+          mkdir -p ~/.kaggle
+          cat <<EOF > ~/.kaggle/kaggle.json
+          {"username":"$KAGGLE_USERNAME","key":"$KAGGLE_KEY"}
+          EOF
+          chmod 600 ~/.kaggle/kaggle.json
+
+      - name: Download Food.com dataset for image
+        run: python scripts/download_data.py --target data
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
