@@ -99,14 +99,12 @@ class CorrelationResult:
     """
     Encapsulation des résultats d'analyse de corrélation.
 
-    Attributes
-    ----------
-    coefficients : pd.DataFrame
-        Matrice des coefficients de corrélation (ρ ou r selon la méthode).
-    p_values : pd.DataFrame
-        Matrice des p-values associées (test bilatéral H₀: ρ = 0).
-    n_obs : pd.DataFrame
-        Matrice des effectifs (paires complètes après suppression des valeurs manquantes).
+    :ivar coefficients: Matrice des coefficients de corrélation (ρ ou r selon la méthode).
+    :vartype coefficients: pd.DataFrame
+    :ivar p_values: Matrice des p-values associées (test bilatéral H₀: ρ = 0).
+    :vartype p_values: pd.DataFrame
+    :ivar n_obs: Matrice des effectifs (paires complètes après suppression des valeurs manquantes).
+    :vartype n_obs: pd.DataFrame
     """
 
     coefficients: pd.DataFrame
@@ -117,10 +115,8 @@ class CorrelationResult:
         """
         Sérialise les matrices en dictionnaires imbriqués.
 
-        Returns
-        -------
-        dict[str, Any]
-            Structure compatible JSON pour export ou API.
+        :returns: Structure compatible JSON pour export ou usage API.
+        :rtype: dict[str, Any]
         """
         return {
             "coefficients": self.coefficients.to_dict(),
@@ -138,21 +134,14 @@ def resolve_dataset_path(path: str | Path | None = None) -> Path:
     """
     Résout le chemin absolu vers le fichier d'analyse.
 
-    Parameters
-    ----------
-    path : str | Path | None
-        Chemin personnalisé vers le fichier CSV ou son répertoire parent.
-        Si None, utilise le chemin par défaut du projet.
+    :param path: Chemin personnalisé vers le fichier CSV ou son répertoire parent.
+        Si ``None``, utilise le chemin par défaut du projet.
+    :type path: str | Path | None
+    :returns: Chemin absolu résolu vers ``analysis_dataset.csv``.
+    :rtype: Path
 
-    Returns
-    -------
-    Path
-        Chemin absolu résolu vers `analysis_dataset.csv`.
-
-    Notes
-    -----
-    Si un répertoire est fourni, le fichier `analysis_dataset.csv` est
-    automatiquement ajouté au chemin.
+    .. note::
+       Si un répertoire est fourni, le fichier ``analysis_dataset.csv`` est automatiquement ajouté au chemin.
     """
     if path is None:
         return DEFAULT_DATA_PATH
@@ -173,27 +162,21 @@ def load_analysis_dataset(
     """
     Charge le dataset d'analyse avec filtrage optionnel des observations incomplètes.
 
-    Parameters
-    ----------
-    path : str | Path | None
-        Chemin vers le fichier CSV ou son répertoire parent.
-    columns : Sequence[str] | None
-        Sous-ensemble de colonnes à charger. Par défaut, charge toutes les colonnes.
-    drop_missing_popularity : bool, default=True
-        Si True, exclut les recettes sans métriques de popularité valides.
-    popularity_cols : Sequence[str] | None
-        Colonnes utilisées pour identifier les valeurs manquantes.
-        Par défaut : ['bayes_mean', 'rating_gap', 'bayes_gap'].
+    :param path: Chemin vers le fichier CSV ou son répertoire parent.
+    :type path: str | Path | None
+    :param columns: Sous-ensemble de colonnes à charger. Lorsque ``None``, toutes les colonnes sont conservées.
+    :type columns: Sequence[str] | None
+    :param drop_missing_popularity: Indique s'il faut exclure les recettes sans métriques de popularité valides.
+    :type drop_missing_popularity: bool
+    :param popularity_cols: Colonnes utilisées pour identifier les valeurs manquantes de popularité.
+        Par défaut ``['bayes_mean', 'rating_gap', 'bayes_gap']``.
+    :type popularity_cols: Sequence[str] | None
+    :returns: Dataset nettoyé avec index réinitialisé.
+    :rtype: pd.DataFrame
 
-    Returns
-    -------
-    pd.DataFrame
-        Dataset nettoyé avec index réinitialisé.
-
-    Notes
-    -----
-    Le filtrage sur la popularité permet d'exclure les recettes sans interactions,
-    évitant ainsi les biais dans les analyses de corrélation et de régression.
+    .. note::
+       Le filtrage sur la popularité permet d'exclure les recettes sans interactions,
+       évitant ainsi les biais dans les analyses de corrélation et de régression.
     """
 
     dataset_path = resolve_dataset_path(path)
@@ -222,31 +205,22 @@ def add_feature_columns(
     - Termes d'interaction (produits de variables)
     - Variables standardisées (z-scores) pour la régression linéaire
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset source (non modifié, une copie est créée).
-    interaction : bool, default=True
-        Si True, crée la variable `steps_x_ingredients`.
-    standardize : bool, default=True
-        Si True, génère les versions centrées-réduites (suffixe `_std`).
-    columns_to_standardize : Sequence[str] | None
-        Colonnes à standardiser. Par défaut : ['log_minutes', 'n_steps',
-        'n_ingredients', 'avg_words_per_step', 'age_months', 'effort_score',
-        'steps_x_ingredients'].
+    :param df: Dataset source (non modifié, une copie est créée).
+    :type df: pd.DataFrame
+    :param interaction: Indique s'il faut créer la variable ``steps_x_ingredients``.
+    :type interaction: bool
+    :param standardize: Indique s'il faut générer les versions centrées-réduites (suffixe ``_std``).
+    :type standardize: bool
+    :param columns_to_standardize: Liste personnalisée des colonnes à standardiser.
+        Par défaut ``['log_minutes', 'n_steps', 'n_ingredients', 'avg_words_per_step', 'age_months', 'effort_score', 'steps_x_ingredients']``.
+    :type columns_to_standardize: Sequence[str] | None
+    :returns: Tuple composé du DataFrame enrichi et des métadonnées de standardisation (moyenne, écart-type par variable).
+    :rtype: tuple[pd.DataFrame, dict[str, Any]]
 
-    Returns
-    -------
-    tuple[pd.DataFrame, dict[str, Any]]
-        - DataFrame enrichi avec les nouvelles colonnes.
-        - Dictionnaire de métadonnées contenant les paramètres de standardisation
-          (moyennes et écarts-types pour chaque variable).
-
-    Notes
-    -----
-    La standardisation utilise l'écart-type de population (ddof=0) pour cohérence
-    avec les pratiques standards de machine learning. Les métadonnées retournées
-    permettent d'appliquer la même transformation sur de nouvelles données.
+    .. note::
+       La standardisation utilise l'écart-type de population (``ddof=0``) pour rester
+       cohérente avec les pratiques courantes en machine learning. Les métadonnées permettent
+       de reproduire la transformation sur de nouvelles données.
     """
 
     enriched = df.copy()
@@ -308,35 +282,29 @@ def compute_correlations(
     - P-values associées (test bilatéral)
     - Effectifs (nombre de paires complètes)
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset contenant les variables d'intérêt.
-    effort_vars : Sequence[str] | None
-        Variables d'effort culinaire. Par défaut : ['log_minutes', 'n_steps',
-        'n_ingredients', 'effort_score'].
-    popularity_vars : Sequence[str] | None
-        Variables de popularité. Par défaut : ['bayes_mean', 'wilson_lb',
-        'interactions_per_month'].
-    method : {'spearman', 'pearson'}, default='spearman'
-        Méthode de corrélation. Spearman est robuste aux distributions non-normales
-        et aux relations monotones non-linéaires.
-    pearson_effort_map : Mapping[str, str] | None
-        Mapping des variables d'effort vers leurs versions transformées pour Pearson.
-    pearson_popularity_map : Mapping[str, str] | None
-        Mapping des variables de popularité vers leurs versions transformées.
+    :param df: Dataset contenant les variables d'intérêt.
+    :type df: pd.DataFrame
+    :param effort_vars: Variables d'effort culinaire. Par défaut ``['log_minutes', 'n_steps',
+        'n_ingredients', 'effort_score']``.
+    :type effort_vars: Sequence[str] | None
+    :param popularity_vars: Variables de popularité. Par défaut ``['bayes_mean', 'wilson_lb',
+        'interactions_per_month']``.
+    :type popularity_vars: Sequence[str] | None
+    :param method: Méthode de corrélation (``'spearman'`` robuste aux distributions non-normales
+        ou ``'pearson'`` pour corrélations linéaires).
+    :type method: Literal["spearman", "pearson"]
+    :param pearson_effort_map: Correspondance entre variables d'effort et leurs versions transformées.
+    :type pearson_effort_map: Mapping[str, str] | None
+    :param pearson_popularity_map: Correspondance entre variables de popularité et leurs versions transformées.
+    :type pearson_popularity_map: Mapping[str, str] | None
+    :returns: Dataclass contenant les trois matrices (coefficients, ``p_values``, ``n_obs``).
+    :rtype: CorrelationResult
 
-    Returns
-    -------
-    CorrelationResult
-        Dataclass contenant les trois matrices (coefficients, p_values, n_obs).
-
-    Notes
-    -----
-    Pour la corrélation de Pearson, les transformations logarithmiques et la
-    winsorisation sont appliquées automatiquement via les mappings pour satisfaire
-    les hypothèses de normalité bivariée. Pour Spearman, les variables brutes
-    sont utilisées (test non-paramétrique).
+    .. note::
+       Pour la corrélation de Pearson, les transformations logarithmiques et la
+       winsorisation sont appliquées automatiquement via les mappings pour satisfaire
+       les hypothèses de normalité bivariée. Pour Spearman, les variables brutes
+       sont utilisées.
     """
 
     effort_vars = list(effort_vars or DEFAULT_EFFORT_VARS)
@@ -402,33 +370,22 @@ def summarize_by_effort_quantiles(
     Effectue une stratification du score d'effort en quantiles et calcule
     les statistiques descriptives des variables de popularité pour chaque strate.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset d'analyse.
-    score_col : str, default='effort_score'
-        Variable continue utilisée pour la stratification.
-    targets : Sequence[str] | None
-        Variables de popularité à agréger. Par défaut : ['bayes_mean',
-        'wilson_lb', 'log1p_interactions_per_month_w'].
-    quantiles : int, default=4
-        Nombre de quantiles (4 = quartiles, 5 = quintiles, etc.).
-    labels : Sequence[str] | None
-        Étiquettes personnalisées pour les strates.
+    :param df: Dataset d'analyse.
+    :type df: pd.DataFrame
+    :param score_col: Variable continue utilisée pour la stratification.
+    :type score_col: str
+    :param targets: Variables de popularité à agréger. Par défaut ``['bayes_mean', 'wilson_lb', 'log1p_interactions_per_month_w']``.
+    :type targets: Sequence[str] | None
+    :param quantiles: Nombre de quantiles (``4`` = quartiles, ``5`` = quintiles, etc.).
+    :type quantiles: int
+    :param labels: Étiquettes personnalisées pour les strates.
+    :type labels: Sequence[str] | None
+    :returns: Dictionnaire contenant les strates calculées, les agrégations et les bornes de quantiles.
+    :rtype: dict[str, Any]
 
-    Returns
-    -------
-    dict[str, Any]
-        Dictionnaire contenant :
-        - 'quartile_column' : Assignation des observations aux strates (liste)
-        - 'summary' : DataFrame d'agrégation (mean, std, count par strate)
-        - 'summary_dict' : Version dictionnaire de l'agrégation
-        - 'quartile_edges' : Bornes numériques des strates
-
-    Notes
-    -----
-    Cette fonction est utile pour détecter des effets de seuil ou des relations
-    non-linéaires entre effort et popularité via une analyse de variance inter-strates.
+    .. note::
+       Cette fonction est utile pour détecter des effets de seuil ou des relations
+       non linéaires entre effort et popularité via une analyse de variance inter-strates.
     """
 
     if score_col not in df.columns:
@@ -477,38 +434,21 @@ def run_group_tests(
     Kruskal-Wallis non-paramétrique pour évaluer l'homogénéité des distributions
     de variables continues à travers des groupes catégoriels.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset d'analyse.
-    group_col : str
-        Variable catégorielle définissant les groupes (ex: 'effort_category').
-    metrics : Sequence[str]
-        Variables continues à tester.
-    methods : Sequence[Literal["anova", "kruskal"]], default=("anova", "kruskal")
-        Tests statistiques à appliquer.
+    :param df: Dataset d'analyse.
+    :type df: pd.DataFrame
+    :param group_col: Variable catégorielle définissant les groupes (ex. ``'effort_category'``).
+    :type group_col: str
+    :param metrics: Variables continues à tester.
+    :type metrics: Sequence[str]
+    :param methods: Tests statistiques à appliquer (ANOVA, Kruskal).
+    :type methods: Sequence[Literal["anova", "kruskal"]]
+    :returns: Tableau de résultats (metric, method, statistic, p_value, n_groups, n_total, group_sizes).
+    :rtype: pd.DataFrame
+    :raises ValueError: Si moins de deux groupes restent après le nettoyage.
 
-    Returns
-    -------
-    pd.DataFrame
-        Tableau de résultats avec colonnes :
-        - metric : Variable testée
-        - method : Test utilisé ('anova' ou 'kruskal')
-        - statistic : Valeur de la statistique de test (F ou H)
-        - p_value : P-value associée
-        - n_groups : Nombre de groupes
-        - n_total : Effectif total
-        - group_sizes : Répartition des effectifs par groupe
-
-    Raises
-    ------
-    ValueError
-        Si moins de 2 groupes sont disponibles après nettoyage.
-
-    Notes
-    -----
-    - ANOVA : Test F de Fisher-Snedecor (hypothèse de normalité et homoscédasticité)
-    - Kruskal-Wallis : Test H non-paramétrique (basé sur les rangs, robuste)
+    .. note::
+       - ANOVA : test F de Fisher-Snedecor (hypothèses de normalité et homoscédasticité).
+       - Kruskal-Wallis : test H non paramétrique (basé sur les rangs, robuste).
     """
 
     if group_col not in df.columns:
@@ -575,41 +515,24 @@ def prepare_lowess_series(
     des polynômes pondérés pour capturer des relations non-linéaires sans spécifier
     de forme fonctionnelle a priori.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset contenant les variables d'intérêt.
-    x_col : str
-        Variable prédictrice (axe X).
-    y_col : str
-        Variable réponse (axe Y).
-    frac : float, default=0.3
-        Fraction de points utilisée pour chaque ajustement local (bandwidth).
-        Valeurs plus faibles → courbe plus flexible ; plus élevées → plus lisse.
-    sample_size : int | None, default=20_000
-        Taille d'échantillon maximale (LOWESS est coûteux en calcul).
-        Si None, utilise toutes les observations.
-    random_state : int, default=42
-        Graine aléatoire pour reproductibilité de l'échantillonnage.
+    :param df: Dataset contenant les variables d'entrée.
+    :type df: pd.DataFrame
+    :param x_col: Nom de la variable prédictrice (axe X).
+    :type x_col: str
+    :param y_col: Nom de la variable réponse (axe Y).
+    :type y_col: str
+    :param frac: Fraction de points pour chaque ajustement local (bandwidth). Valeur faible → courbe flexible.
+    :type frac: float
+    :param sample_size: Taille d'échantillon maximale (LOWESS est coûteux). ``None`` pour utiliser toutes les lignes.
+    :type sample_size: int | None
+    :param random_state: Graine aléatoire utilisée pour l'échantillonnage.
+    :type random_state: int
+    :returns: Dictionnaire contenant les points bruts, la courbe lissée, le paramètre de lissage et le volume d'échantillon.
+    :rtype: dict[str, Any]
+    :raises ValueError: Si aucun point valide n'est disponible après nettoyage.
 
-    Returns
-    -------
-    dict[str, Any]
-        Dictionnaire contenant :
-        - 'x_raw', 'y_raw' : Points utilisés (listes)
-        - 'x_smooth', 'y_smooth' : Courbe lissée (listes triées par x)
-        - 'frac' : Paramètre de lissage utilisé
-        - 'n_points' : Nombre de points dans l'échantillon
-
-    Raises
-    ------
-    ValueError
-        Si aucun point valide n'est disponible après nettoyage.
-
-    Notes
-    -----
-    Cette fonction ne génère pas de graphique mais retourne les données
-    nécessaires pour la visualisation ou l'export.
+    .. note::
+       Cette fonction ne génère pas de graphique mais fournit les données prêtes à tracer.
     """
 
     if x_col not in df.columns or y_col not in df.columns:
@@ -662,40 +585,27 @@ def run_models(
     - Forêt aléatoire (scikit-learn) : modèle non-linéaire avec interactions
     - Régression OLS (statsmodels) : inférence statistique avec p-values
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataset contenant les prédicteurs et les variables cibles.
-    features : Sequence[str] | None
-        Variables prédictives. Par défaut : ['log_minutes_std', 'n_steps_std',
-        'n_ingredients_std', 'steps_x_ingredients_std', 'age_months_std'].
-    targets : Sequence[str] | None
-        Variables à prédire. Par défaut : ['bayes_mean', 'wilson_lb',
-        'log1p_interactions_per_month_w'].
-    test_size : float, default=0.2
-        Fraction du dataset réservée pour la validation (hold-out).
-    random_state : int, default=42
-        Graine aléatoire pour reproductibilité.
-    rf_params : Mapping[str, Any] | None
-        Hyperparamètres pour RandomForestRegressor.
+    :param df: Dataset contenant les prédicteurs et les variables cibles.
+    :type df: pd.DataFrame
+    :param features: Variables prédictives. Par défaut ``['log_minutes_std', 'n_steps_std',
+        'n_ingredients_std', 'steps_x_ingredients_std', 'age_months_std']``.
+    :type features: Sequence[str] | None
+    :param targets: Variables à prédire. Par défaut ``['bayes_mean', 'wilson_lb', 'log1p_interactions_per_month_w']``.
+    :type targets: Sequence[str] | None
+    :param test_size: Fraction du dataset réservée à la validation (hold-out).
+    :type test_size: float
+    :param random_state: Graine aléatoire pour la reproductibilité.
+    :type random_state: int
+    :param rf_params: Hyperparamètres passés à ``RandomForestRegressor``.
+    :type rf_params: Mapping[str, Any] | None
+    :returns: Structure contenant la configuration utilisée et les métriques des modèles entraînés.
+    :rtype: dict[str, Any]
 
-    Returns
-    -------
-    dict[str, Any]
-        Structure imbriquée contenant :
-        - 'settings' : Configuration utilisée
-        - 'models' : Résultats par variable cible, incluant :
-            - 'linear_regression' : RMSE, MAE, R², coefficients
-            - 'random_forest' : RMSE, MAE, R², feature importances
-            - 'ols' : R², R² ajusté, coefficients, p-values, std errors
-            - 'n_train', 'n_test' : Tailles des ensembles
-
-    Notes
-    -----
-    - Les prédicteurs doivent être pré-standardisés (suffixe `_std`)
-    - La régression linéaire applique une seconde standardisation via StandardScaler
-    - OLS est ajusté sur l'ensemble complet (pas de split) pour inférence statistique
-    - Les métriques sont calculées sur l'ensemble de test (généralisation)
+    .. note::
+       - Les prédicteurs doivent être pré-standardisés (suffixe ``_std``).
+       - La régression linéaire applique une seconde standardisation via ``StandardScaler``.
+       - OLS est ajusté sur l'ensemble complet pour l'inférence statistique.
+       - Les métriques reportées proviennent de l'ensemble de test.
     """
 
     features = list(features or DEFAULT_MODEL_FEATURES)

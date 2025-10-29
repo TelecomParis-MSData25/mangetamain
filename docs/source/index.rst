@@ -7,7 +7,7 @@ Cette documentation présente l'application d'analyse de l'effort culinaire et d
    :maxdepth: 2
    :caption: Contents:
 
-   webapp
+   modules
 
 Indices and tables
 ==================

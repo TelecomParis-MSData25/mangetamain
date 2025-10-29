@@ -22,7 +22,12 @@ import pandas as pd
 
 
 def _detect_repo_root() -> Path:
-    """Retourne la racine du dépôt quel que soit le contexte d'exécution."""
+    """
+    Identifie la racine du dépôt, quel que soit le contexte d'exécution.
+
+    :returns: Chemin absolu de la racine du projet.
+    :rtype: Path
+    """
     if "__file__" in globals():
         return Path(__file__).resolve().parents[1]
 
@@ -46,7 +51,11 @@ OUTPUT_DIR = REPO_ROOT / "dataset_analysis" / "data"
 
 
 def _ensure_raw_data_available() -> None:
-    """Télécharge les fichiers Kaggle si nécessaire."""
+    """
+    Garantit la présence des fichiers bruts Kaggle en local.
+
+    :raises FileNotFoundError: Si le script de téléchargement est introuvable.
+    """
     raw_files = ["RAW_recipes.csv", "RAW_interactions.csv"]
     if all((DATA_DIR / name).exists() for name in raw_files):
         return
@@ -65,7 +74,12 @@ def _ensure_raw_data_available() -> None:
 
 
 def load_raw_datasets() -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Charge les deux fichiers bruts Kaggle."""
+    """
+    Charge les fichiers ``RAW_recipes.csv`` et ``RAW_interactions.csv``.
+
+    :returns: Tuple contenant respectivement les DataFrames des recettes et des interactions.
+    :rtype: tuple[pd.DataFrame, pd.DataFrame]
+    """
     _ensure_raw_data_available()
     recipes = pd.read_csv(DATA_DIR / "RAW_recipes.csv")
     interactions = pd.read_csv(DATA_DIR / "RAW_interactions.csv")
@@ -78,7 +92,14 @@ def load_raw_datasets() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def _parse_steps(value: object) -> list[str]:
-    """Transforme la colonne `steps` (str/list) en liste de chaînes."""
+    """
+    Convertit la valeur de la colonne ``steps`` en liste de chaînes.
+
+    :param value: Valeur brute provenant du fichier Kaggle (liste, chaîne JSON ou NaN).
+    :type value: object
+    :returns: Liste normalisée des étapes de la recette.
+    :rtype: list[str]
+    """
     if isinstance(value, list):
         return [str(step) for step in value]
     if isinstance(value, float) and np.isnan(value):
@@ -94,6 +115,14 @@ def _parse_steps(value: object) -> list[str]:
 
 
 def categorize_prep_time(minutes: float) -> str:
+    """
+    Catégorise un temps de préparation en classes qualitatives.
+
+    :param minutes: Durée totale de la recette en minutes.
+    :type minutes: float
+    :returns: Libellé de catégorie (« Rapide », « Moyenne » ou « Longue »).
+    :rtype: str
+    """
     if minutes < 30:
         return "Rapide"
     if minutes <= 90:
@@ -102,6 +131,14 @@ def categorize_prep_time(minutes: float) -> str:
 
 
 def categorize_complexity(n_steps: int) -> str:
+    """
+    Classe la complexité d'une recette selon le nombre d'étapes.
+
+    :param n_steps: Nombre d'étapes décrites dans la recette.
+    :type n_steps: int
+    :returns: Libellé de complexité (« Simple », « Modéré », « Complexe », « Très complexe »).
+    :rtype: str
+    """
     if n_steps <= 5:
         return "Simple"
     if n_steps <= 10:
@@ -112,6 +149,14 @@ def categorize_complexity(n_steps: int) -> str:
 
 
 def categorize_step_length(avg_words: float) -> str:
+    """
+    Catégorise la longueur moyenne des étapes d'une recette.
+
+    :param avg_words: Nombre moyen de mots par étape.
+    :type avg_words: float
+    :returns: Catégorie de longueur (« Étapes courtes », « Étapes moyennes », « Étapes longues »).
+    :rtype: str
+    """
     if avg_words < 10:
         return "Étapes courtes"
     if avg_words < 20:
@@ -120,6 +165,14 @@ def categorize_step_length(avg_words: float) -> str:
 
 
 def categorize_n_ingredients(n_ingredients: int) -> str:
+    """
+    Catégorise la recette selon le nombre d'ingrédients.
+
+    :param n_ingredients: Nombre d'ingrédients distincts.
+    :type n_ingredients: int
+    :returns: Libellé de catégorie (« Peu d'ingrédients », « Ingrédients modérés », « Beaucoup d'ingrédients »).
+    :rtype: str
+    """
     if n_ingredients <= 5:
         return "Peu d'ingrédients"
     if n_ingredients <= 10:
@@ -128,7 +181,14 @@ def categorize_n_ingredients(n_ingredients: int) -> str:
 
 
 def calculate_avg_words_per_step(steps_value: object) -> float:
-    """Calcule la longueur moyenne (en mots) des étapes d'une recette."""
+    """
+    Calcule le nombre moyen de mots par étape pour une recette.
+
+    :param steps_value: Valeur brute de la colonne ``steps``.
+    :type steps_value: object
+    :returns: Nombre moyen de mots par étape (0 si aucune étape valide).
+    :rtype: float
+    """
     steps = _parse_steps(steps_value)
     if not steps:
         return 0.0
@@ -137,7 +197,14 @@ def calculate_avg_words_per_step(steps_value: object) -> float:
 
 
 def _minmax_scale(series: pd.Series) -> pd.Series:
-    """Ramène la série sur [0, 1] (retourne 0 si variance nulle)."""
+    """
+    Normalise une série sur l'intervalle [0, 1].
+
+    :param series: Série numérique à mettre à l'échelle.
+    :type series: pd.Series
+    :returns: Série normalisée ; 0 si la variance est nulle ou invalide.
+    :rtype: pd.Series
+    """
     min_val = series.min()
     max_val = series.max()
     if pd.isna(min_val) or pd.isna(max_val) or max_val == min_val:
@@ -146,7 +213,14 @@ def _minmax_scale(series: pd.Series) -> pd.Series:
 
 
 def prepare_recipes(recipes: pd.DataFrame) -> pd.DataFrame:
-    """Nettoie et enrichit le jeu de données des recettes."""
+    """
+    Nettoie et enrichit le jeu de données des recettes Kaggle.
+
+    :param recipes: DataFrame brut provenant du fichier ``RAW_recipes.csv``.
+    :type recipes: pd.DataFrame
+    :returns: DataFrame nettoyé avec colonnes enrichies (scores, catégories, transformations).
+    :rtype: pd.DataFrame
+    """
     recipes_clean = recipes.copy()
 
     recipes_clean["minutes"] = recipes_clean["minutes"].replace({0: np.nan})
@@ -227,7 +301,14 @@ def prepare_recipes(recipes: pd.DataFrame) -> pd.DataFrame:
 
 
 def prepare_interactions(interactions: pd.DataFrame) -> pd.DataFrame:
-    """Applique les traitements décrits dans le notebook sur les interactions."""
+    """
+    Nettoie les interactions utilisateur-recette.
+
+    :param interactions: DataFrame brut ``RAW_interactions.csv``.
+    :type interactions: pd.DataFrame
+    :returns: DataFrame nettoyé avec conversions de dates, suppression des notes nulles et longueurs de review.
+    :rtype: pd.DataFrame
+    """
     interactions_clean = interactions.copy()
     interactions_clean["date"] = pd.to_datetime(
         interactions_clean["date"], errors="coerce"
@@ -241,7 +322,14 @@ def prepare_interactions(interactions: pd.DataFrame) -> pd.DataFrame:
 
 
 def _aggregate_recipe_metrics(interactions: pd.DataFrame) -> pd.DataFrame:
-    """Calcule les métriques d'engagement et de satisfaction par recette."""
+    """
+    Calcule les métriques d'engagement et de satisfaction par recette.
+
+    :param interactions: Interactions nettoyées contenant les colonnes ``recipe_id`` et ``rating``.
+    :type interactions: pd.DataFrame
+    :returns: DataFrame indexé par ``recipe_id`` avec mesures agrégées (moyennes, écarts, Wilson, etc.).
+    :rtype: pd.DataFrame
+    """
     recipe_metrics = (
         interactions.groupby("recipe_id")
         .agg(
@@ -297,13 +385,32 @@ def _aggregate_recipe_metrics(interactions: pd.DataFrame) -> pd.DataFrame:
 
 
 def _compute_age_in_months(submitted: pd.Series) -> pd.Series:
+    """
+    Transforme une série de dates de soumission en ancienneté en mois.
+
+    :param submitted: Série de dates de publication des recettes.
+    :type submitted: pd.Series
+    :returns: Série de durées en mois (valeurs négatives mises à 0).
+    :rtype: pd.Series
+    """
     current_date = pd.Timestamp.now(tz=None)
     age_months = (current_date - submitted).dt.days / 30.44
     return age_months.clip(lower=0).round(1)
 
 
 def winsorize(series: pd.Series, lower_pct: float = 0.05, upper_pct: float = 0.99) -> pd.Series:
-    """Borne la série entre les quantiles choisis sans supprimer de lignes."""
+    """
+    Écrête les valeurs extrêmes d'une série selon des quantiles donnés.
+
+    :param series: Série numérique à borner.
+    :type series: pd.Series
+    :param lower_pct: Quantile inférieur utilisé comme borne minimale, defaults to 0.05.
+    :type lower_pct: float, optional
+    :param upper_pct: Quantile supérieur utilisé comme borne maximale, defaults to 0.99.
+    :type upper_pct: float, optional
+    :returns: Série winsorisée conservant l'index d'origine.
+    :rtype: pd.Series
+    """
     data = series.dropna()
     if data.empty:
         return series
@@ -313,7 +420,16 @@ def winsorize(series: pd.Series, lower_pct: float = 0.05, upper_pct: float = 0.9
 
 
 def enrich_analysis_dataset(recipes: pd.DataFrame, interactions: pd.DataFrame) -> pd.DataFrame:
-    """Fusionne les recettes et les métriques d'interaction et ajoute les variables dérivées."""
+    """
+    Fusionne les recettes nettoyées avec les métriques d'interactions.
+
+    :param recipes: Recettes prétraitées.
+    :type recipes: pd.DataFrame
+    :param interactions: Interactions nettoyées prêtes pour l'agrégation.
+    :type interactions: pd.DataFrame
+    :returns: DataFrame consolidé avec variables d'effort, d'engagement et dérivées logarithmiques.
+    :rtype: pd.DataFrame
+    """
     recipe_metrics = _aggregate_recipe_metrics(interactions)
 
     df_analysis = recipes.merge(
@@ -351,14 +467,10 @@ def build_analysis_dataset(save: bool = True) -> tuple[pd.DataFrame, pd.DataFram
     """
     Construit les différents DataFrames nécessaires à l'analyse.
 
-    Returns
-    -------
-    recipes_clean : DataFrame
-        Recettes nettoyées avec les variables d'effort culinaire.
-    interactions_clean : DataFrame
-        Interactions prêtes pour agrégation (notes à 0 passées en NA).
-    df_analysis : DataFrame
-        Jeu de données consolidé recettes + métriques d'engagement.
+    :param save: Indique s'il faut enregistrer les fichiers générés sur disque, defaults to True.
+    :type save: bool, optional
+    :returns: Tuple ``(recipes_clean, interactions_clean, df_analysis)`` contenant les jeux de données générés.
+    :rtype: tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
     """
     recipes_raw, interactions_raw = load_raw_datasets()
     recipes_clean = prepare_recipes(recipes_raw)

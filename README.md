@@ -71,111 +71,112 @@ docker rm mangetamain-app
 
 ### 🧪 Tests unitaires
 
-Le projet inclut une suite complète de tests pour valider le fonctionnement du module d'analyse des données.
+Le projet inclut une suite complète de tests unitaires et d'intégration pour valider le fonctionnement du module d'analyse des données.
 
 #### Lancement des tests
 
-**Tests unitaires :**
+**Tests unitaires uniquement :**
 
 ```bash
-# Tests du module de préprocessing
-uv run pytest tests/test_dataset_preprocessing.py -v
+uv run pytest tests/test_data_analysis.py -v
+```
 
-# Tests du module d'analyse statistique
-uv run pytest tests/test_utils.py -v
+**Tests d'intégration :**
+
+```bash
+uv run pytest tests/test_integration.py -v
 ```
 
 **Tous les tests :**
 
 ```bash
-uv run pytest tests/ -v
+uv run pytest -v
 ```
 
 #### Tests avec couverture de code
 
 ```bash
 # Rapport de couverture détaillé
-uv run pytest tests/ --cov=dataset_analysis --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
 
 # Générer un rapport HTML
-uv run pytest tests/ --cov=dataset_analysis --cov-report=html
+uv run pytest --cov=src --cov-report=html
 ```
 
 #### Types de tests disponibles
 
-- **Tests de préprocessing** (`test_dataset_preprocessing.py`) : 
-  - Tests des fonctions pures de catégorisation et parsing
-  - Tests des transformations DataFrame (recettes, interactions)
-  - Tests de fusion et métriques d'agrégation
-  - Test mocké de `build_analysis_dataset` (sans I/O)
+- **Tests unitaires** (`test_data_analysis.py`) : 17 tests avec données simulées
+- **Tests d'intégration** (`test_integration.py`) : 11 tests avec le vrai dataset
+- **Tests marqués** :
+  - `@pytest.mark.unit` : Tests unitaires rapides
+  - `@pytest.mark.integration` : Tests d'intégration
+  - `@pytest.mark.slow` : Tests plus longs
 
-- **Tests d'analyse statistique** (`test_utils.py`) :
-  - Tests de chargement et filtrage des données
-  - Tests d'enrichissement des variables (standardisation, interactions)
-  - Tests de corrélations (Pearson, Spearman)
-  - Tests d'agrégation par quantiles et comparaison de groupes
-  - Tests de régression LOWESS et modélisation prédictive
+#### Tests de l'application web
 
-#### Exécution sélective des tests
+Le projet inclut également une suite complète de tests pour l'application Streamlit qui valide l'interface utilisateur et les fonctionnalités d'analyse interactive.
+
+**Tests de la webapp uniquement :**
 
 ```bash
-# Tests spécifiques par fonction
-uv run pytest tests/test_utils.py::test_compute_correlations_spearman -v
-
-# Tests par pattern
-uv run pytest tests/ -k "correlation" -v
-
-# Exclure les tests lents (si marqués)
-uv run pytest tests/ -m "not slow" -v
+uv run pytest tests/test_webapp.py -v
 ```
 
-#### Structure des tests
+**Tests avec couverture de l'application :**
+
+```bash
+# Rapport de couverture pour webapp et modules d'analyse
+uv run pytest tests/ --cov=src --cov=dataset_analysis --cov-report=term-missing
+
+# Générer un rapport HTML complet
+uv run pytest tests/ --cov=src --cov=dataset_analysis --cov-report=html
+```
+
+#### Types de tests webapp disponibles
+
+- **Tests de l'interface** (`test_webapp.py`) : 91 tests couvrant l'interface Streamlit
+- **Tests des composants** :
+  - Configuration et logging
+  - Génération de données simulées
+  - Affichage des métriques et statistiques
+  - Visualisations interactives (corrélations, heatmaps, boxplots)
+  - Modèles prédictifs et graphiques de prédiction
+  - Gestion d'erreurs et cas limites
+
+#### Exécution complète des tests
+
+```bash
+# Tous les tests (webapp + analyse de données)
+uv run pytest tests/ -v
+
+# Tests avec seuil de couverture
+uv run pytest tests/ --cov=src --cov=dataset_analysis
+
+# Tests en parallèle (plus rapide)
+uv run pytest tests/ -n auto
+```
+
+#### Structure complète des tests
 
 ```
-├── dataset_analysis/           #Modules à tester
-│   ├── __init__.py
-│   ├── utils.py
-│   └── dataset_preprocessing.py
-├── tests/                      # Tests à réaliser
+tests/
 ├── __init__.py
-├── test_dataset_preprocessing.py    # Tests du module de préparation des données
-└── test_utils.py                    # Tests du module d'analyse statistique
+├── test_data_analysis.py      # Tests unitaires avec données simulées
+├── test_integration.py        # Tests d'intégration avec vrai dataset
+└── test_webapp.py            # Tests de l'application Streamlit
 ```
 
-#### Couverture fonctionnelle
+Les tests webapp couvrent :
 
-Les tests couvrent l'ensemble des fonctionnalités :
-
-**Préprocessing :**
-- ✅ Parsing des recettes (étapes, ingrédients, temps)
-- ✅ Catégorisation automatique (complexité, effort)
-- ✅ Calcul des scores d'effort culinaire
-- ✅ Agrégation des métriques d'interaction
-- ✅ Fusion recettes/interactions avec variables dérivées
-
-**Analyse statistique :**
-- ✅ Chargement et préparation des datasets
-- ✅ Analyses de corrélation bivariée (robustes aux outliers)
-- ✅ Stratification par quantiles et tests de groupes
-- ✅ Régression non-paramétrique (LOWESS)
-- ✅ Modélisation prédictive (linéaire, forêts aléatoires, OLS)
-- ✅ Gestion des cas limites et erreurs
-
-#### Configuration des tests
-
-Le fichier `pytest.ini` configure :
-- Chemins de test automatiques
-- Marqueurs personnalisés (slow, integration, unit)
-- Options par défaut pour l'exécution
-- Chemin Python pour l'import des modules
-
-#### Données de test
-
-Les tests utilisent des fixtures avec données simulées pour garantir :
-- **Reproductibilité** : Graines aléatoires fixées
-- **Performance** : Pas d'accès disque pendant les tests
-- **Isolation** : Tests indépendants les uns des autres
-- **Couverture** : Cas normaux et cas limites
+- La configuration Streamlit et système de logging
+- L'import et le chargement des modules d'analyse
+- La génération et la validation des données simulées
+- L'affichage des métriques et des statistiques descriptives
+- Les visualisations interactives (scatter plots, heatmaps, boxplots)
+- La configuration et l'entraînement des modèles
+- Les graphiques de prédiction avec les courbes de régression
+- La gestion d'erreurs et les cas d'usage limites
+- Les interfaces utilisateur et la navigation entre onglets
 
 ### 📚 Documentation avec Sphinx
 

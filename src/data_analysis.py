@@ -7,18 +7,25 @@ import pandas as pd
 import numpy as np
 import ast
 from collections import Counter
-from typing import List, Dict, Optional
-
 
 class RecipeDataAnalyzer:
-    """Classe pour analyser les données de recettes."""
-    
+    """
+    Analyse les jeux de données de recettes extraits de Kaggle.
+
+    :ivar csv_path: Chemin du fichier CSV des recettes.
+    :vartype csv_path: str
+    :ivar recipe_data: Données brutes chargées depuis ``csv_path``.
+    :vartype recipe_data: pd.DataFrame | None
+    :ivar cleaned_data: Données filtrées après traitement des outliers.
+    :vartype cleaned_data: pd.DataFrame | None
+    """
+
     def __init__(self, csv_path: str) -> None:
         """
         Initialise l'analyseur avec le chemin vers le fichier CSV.
-        
-        Args:
-            csv_path (str): Chemin vers le fichier CSV des recettes
+
+        :param csv_path: Chemin vers le fichier CSV contenant les recettes.
+        :type csv_path: str
         """
         self.csv_path = csv_path
         self.recipe_data = None
@@ -27,19 +34,20 @@ class RecipeDataAnalyzer:
     def load_data(self) -> pd.DataFrame:
         """
         Charge les données depuis le fichier CSV.
-        
-        Returns:
-            pd.DataFrame: Les données chargées
+
+        :returns: Jeu de données brut chargé depuis ``csv_path``.
+        :rtype: pd.DataFrame
         """
         self.recipe_data = pd.read_csv(self.csv_path)
         return self.recipe_data
     
-    def get_basic_info(self) -> Dict[str, any]:
+    def get_basic_info(self) -> dict[str, any]:
         """
         Retourne des informations de base sur le dataset.
-        
-        Returns:
-            Dict: Informations de base (nombre de recettes, variables, valeurs manquantes)
+
+        :returns: Informations clés (nombre de recettes, colonnes, valeurs manquantes).
+        :rtype: dict[str, any]
+        :raises ValueError: Si les données n'ont pas encore été chargées.
         """
         if self.recipe_data is None:
             raise ValueError("Les données doivent être chargées d'abord avec load_data()")
@@ -53,12 +61,13 @@ class RecipeDataAnalyzer:
         }
         return info
     
-    def analyze_minutes(self) -> Dict[str, any]:
+    def analyze_minutes(self) -> dict[str, any]:
         """
         Analyse la variable 'minutes' (temps de préparation).
-        
-        Returns:
-            Dict: Statistiques sur les minutes
+
+        :returns: Statistiques descriptives sur la durée de préparation.
+        :rtype: dict[str, any]
+        :raises ValueError: Si les données n'ont pas encore été chargées.
         """
         if self.recipe_data is None:
             raise ValueError("Les données doivent être chargées d'abord avec load_data()")
@@ -74,16 +83,15 @@ class RecipeDataAnalyzer:
         }
         return minutes_stats
     
-    def remove_outliers_minutes(self, max_minutes: Optional[int] = None) -> pd.DataFrame:
+    def remove_outliers_minutes(self, max_minutes: int | None = None) -> pd.DataFrame:
         """
         Supprime les outliers de la variable minutes.
-        
-        Args:
-            max_minutes (int, optional): Temps maximum en minutes. 
-                                       Par défaut: 30*24*60 (1 mois)
-        
-        Returns:
-            pd.DataFrame: Données nettoyées
+
+        :param max_minutes: Temps maximal en minutes à conserver ; ``None`` applique la limite d'un mois.
+        :type max_minutes: int | None
+        :returns: DataFrame nettoyé sans recettes extrêmes sur ``minutes``.
+        :rtype: pd.DataFrame
+        :raises ValueError: Si aucune donnée n'est disponible.
         """
         if self.recipe_data is None:
             raise ValueError("Les données doivent être chargées d'abord avec load_data()")
@@ -114,12 +122,13 @@ class RecipeDataAnalyzer:
         self.cleaned_data = cleaned
         return cleaned
     
-    def analyze_contributors(self) -> Dict[str, any]:
+    def analyze_contributors(self) -> dict[str, any]:
         """
         Analyse les contributeurs de recettes.
-        
-        Returns:
-            Dict: Statistiques sur les contributeurs
+
+        :returns: Statistiques sur la contribution (nombre, top contributeur, moyenne).
+        :rtype: dict[str, any]
+        :raises ValueError: Si aucune donnée (brute ou nettoyée) n'est disponible.
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -137,15 +146,15 @@ class RecipeDataAnalyzer:
         }
         return stats
     
-    def parse_list_column(self, column_name: str) -> List[str]:
+    def parse_list_column(self, column_name: str) -> list[str]:
         """
         Parse une colonne contenant des listes sous forme de strings.
-        
-        Args:
-            column_name (str): Nom de la colonne à parser
-            
-        Returns:
-            List[str]: Liste de tous les éléments extraits
+
+        :param column_name: Nom de la colonne à interpréter comme liste.
+        :type column_name: str
+        :returns: Ensemble aplati de tous les éléments présents dans la colonne.
+        :rtype: list[str]
+        :raises ValueError: Si aucune donnée n'est disponible ou si la colonne est absente.
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -166,12 +175,12 @@ class RecipeDataAnalyzer:
                 
         return all_items
     
-    def analyze_ingredients(self) -> Dict[str, any]:
+    def analyze_ingredients(self) -> dict[str, any]:
         """
         Analyse les ingrédients des recettes.
-        
-        Returns:
-            Dict: Statistiques sur les ingrédients
+
+        :returns: Statistiques sur la diversité et la fréquence des ingrédients.
+        :rtype: dict[str, any]
         """
         all_ingredients = self.parse_list_column('ingredients')
         ingredient_counts = Counter(all_ingredients)
@@ -184,12 +193,12 @@ class RecipeDataAnalyzer:
         }
         return stats
     
-    def analyze_tags(self) -> Dict[str, any]:
+    def analyze_tags(self) -> dict[str, any]:
         """
         Analyse les tags des recettes.
-        
-        Returns:
-            Dict: Statistiques sur les tags
+
+        :returns: Statistiques sur la fréquence et la variété des tags.
+        :rtype: dict[str, any]
         """
         all_tags = self.parse_list_column('tags')
         tag_counts = Counter(all_tags)
@@ -205,9 +214,10 @@ class RecipeDataAnalyzer:
     def process_nutrition_scores(self) -> pd.DataFrame:
         """
         Traite les scores nutritionnels en colonnes séparées.
-        
-        Returns:
-            pd.DataFrame: Données avec colonnes nutritionnelles séparées
+
+        :returns: DataFrame enrichi avec les colonnes nutritionnelles explicites.
+        :rtype: pd.DataFrame
+        :raises ValueError: Si aucune donnée n'est disponible.
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -239,12 +249,12 @@ class RecipeDataAnalyzer:
         
         return processed_data
     
-    def analyze_nutrition(self) -> Dict[str, any]:
+    def analyze_nutrition(self) -> dict[str, any]:
         """
         Analyse les données nutritionnelles.
-        
-        Returns:
-            Dict: Statistiques nutritionnelles
+
+        :returns: Statistiques descriptives par composant nutritionnel.
+        :rtype: dict[str, any]
         """
         nutrition_data = self.process_nutrition_scores()
         
@@ -266,12 +276,13 @@ class RecipeDataAnalyzer:
         
         return stats
     
-    def analyze_steps_and_ingredients_count(self) -> Dict[str, any]:
+    def analyze_steps_and_ingredients_count(self) -> dict[str, any]:
         """
         Analyse le nombre d'étapes et d'ingrédients.
-        
-        Returns:
-            Dict: Statistiques sur n_steps et n_ingredients
+
+        :returns: Statistiques sur ``n_steps`` et ``n_ingredients`` (moyenne, médiane, max, mode).
+        :rtype: dict[str, any]
+        :raises ValueError: Si aucune donnée n'est disponible.
         """
         data = self.cleaned_data if self.cleaned_data is not None else self.recipe_data
         if data is None:
@@ -295,12 +306,12 @@ class RecipeDataAnalyzer:
         }
         return stats
     
-    def get_complete_analysis(self) -> Dict[str, any]:
+    def get_complete_analysis(self) -> dict[str, any]:
         """
         Effectue une analyse complète du dataset.
-        
-        Returns:
-            Dict: Analyse complète
+
+        :returns: Dictionnaire regroupant toutes les analyses calculées.
+        :rtype: dict[str, any]
         """
         # Charger les données si pas déjà fait
         if self.recipe_data is None:
@@ -319,8 +330,13 @@ class RecipeDataAnalyzer:
         return analysis
 
 
-def main():
-    """Fonction principale pour tester l'analyseur."""
+def main():  # pragma: no cover
+    """
+    Exécute un scénario de démonstration pour l'analyseur.
+
+    :returns: ``None``.
+    :rtype: None
+    """
     analyzer = RecipeDataAnalyzer('data/RAW_recipes.csv')
     analyzer.load_data()
     
@@ -366,5 +382,5 @@ def main():
         print(f"  - {tag}: {count:,}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

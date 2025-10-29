@@ -25,3 +25,4 @@ kaggle.json
 htmlcov/
 coverage.xml
 *.log
+*.pdf
