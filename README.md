@@ -22,13 +22,13 @@
 
 ---
 
-## Aperçu
+## 📊 Aperçu
 
 - `Mangetamain` construit un pipeline de science des données pour relier effort culinaire (temps, étapes, ingrédients) et popularité des recettes (notes, interactions) à partir du dataset Food.com.
 - L’application Streamlit (`src/webapp.py`) propose un storytelling interactif, complété par des modules analytiques (`src/`, `dataset_analysis/`) et une documentation Sphinx.
 - La chaîne CI/CD GitHub Actions orchestre validation du code, génération de la doc, publication d’images Docker multi-architectures et audit de sécurité.
 
-## Problématique & démarche analytique
+## 🔬 Problématique & démarche analytique
 
 La question centrale qui guide le projet est : **« En quoi l’effort culinaire influence-t-il la popularité des recettes ? »**
 
@@ -36,7 +36,7 @@ La question centrale qui guide le projet est : **« En quoi l’effort culinaire
 - La popularité combine satisfaction (moyenne, médiane, intervalle de confiance des notes) et engagement (volume de reviews, interactions cumulées).
 - L’interface permet de croiser ces métriques, d’isoler des familles de recettes et de comparer effort perçu vs. succès rencontré pour aider créateurs et plateformes à prioriser leurs contenus culinaires.
 
-## Travail collectif & gouvernance
+## 👥 Travail collectif & gouvernance
 
 - Projet réalisé en équipe dans le cadre de la formation MSData : les tâches ont été suivies sur Jira.
 - Chaque user story Jira déclenche automatiquement la création d’une branche dédiée sur GitHub, ce qui garantit la traçabilité du flux `issue ➜ branche ➜ pull request`.
@@ -49,13 +49,13 @@ La question centrale qui guide le projet est : **« En quoi l’effort culinaire
 ---
 ---
 
-## Application en ligne
+## 🌐 Application en ligne
 
 - L’application Streamlit est déployée sur Streamlit Cloud : <https://mangetamain-ms-data26.streamlit.app/>.
 - Le déploiement suit automatiquement les commits de la branche `main` et reflète à la fois les évolutions de l’interface (`src/webapp.py`) et des jeux de données préparés par la CI.
 - Les identifiants Kaggle configurés dans GitHub Actions permettent de régénérer les datasets nécessaires à l’instance Cloud pour garantir un rendu cohérent avec l’environnement local.
 
-## Images Docker GHCR.io (GitHub Container Registry)
+## 🐳 Images Docker GHCR.io (GitHub Container Registry)
 
 La manière la plus simple d’exécuter l’application est d’utiliser les images Docker publiées automatiquement via la CI/CD GitHub Actions.
 
@@ -69,9 +69,9 @@ La manière la plus simple d’exécuter l’application est d’utiliser les im
 
 - Pour cibler une version précise, utilisez les tags `:main` ou `:sha-<commit>` visibles dans l’onglet *Packages* du dépôt GitHub.
 
-## Démarrage rapide
+## 🚀 Démarrage rapide
 
-1. **Configurer l’accès Kaggle**
+1. **⚙️ Configurer l'accès Kaggle**
 
    ```bash
    export KAGGLE_USERNAME="<votre_identifiant_kaggle>"
@@ -90,20 +90,20 @@ La manière la plus simple d’exécuter l’application est d’utiliser les im
 
    Les identifiants sont disponibles dans votre profil Kaggle > *Settings* > *Create New API Token*. La CI GitHub Actions recharge ces mêmes variables pour télécharger les datasets automatiquement.
 
-2. **Installer les dépendances**
+2. **📦 Installer les dépendances**
 
    ```bash
    uv sync --dev
    ```
 
-3. **Préparer les données Food.com**
+3. **📊 Préparer les données Food.com**
 
    ```bash
    uv run python scripts/download_data.py --target data
    uv run python dataset_analysis/dataset_preprocessing.py
    ```
 
-4. **Lancer le tableau de bord Streamlit**
+4. **📱 Lancer le tableau de bord Streamlit**
 
    ```bash
    uv run streamlit run src/webapp.py
@@ -111,7 +111,7 @@ La manière la plus simple d’exécuter l’application est d’utiliser les im
 
 Les notebooks dans `dataset_analysis/` et `src/data_analysis.py` illustrent les étapes de préparation, d’ingénierie de variables et de modélisation.
 
-## Chaîne CI/CD
+## ⚙️ Chaîne CI/CD
 
 La pipeline principale (`.github/workflows/ci.yml`) s’exécute à chaque push et se décline en plusieurs stages :
 
@@ -127,7 +127,7 @@ Une seconde pipeline (`.github/workflows/dependencies.yml`) tourne chaque lundi 
 - Mettre à jour automatiquement le lockfile `uv.lock` et ouvrir une PR dédiée si nécessaire.
 - Lancer un audit de sécurité (Safety, Bandit) et archiver les rapports.
 
-## Documentation
+## 📚 Documentation
 
 - Documentation API et guide utilisateur publiés automatiquement sur GitHub Pages : <https://telecomparis-msdata25.github.io/mangetamain/>.
 - Lancement local :
@@ -138,13 +138,13 @@ uv run sphinx-build -b html docs/source docs/build/html
 open docs/build/html/index.html  # ou xdg-open sous Linux
 ```
 
-## Jeux de données & pipeline analytique
+## 📈 Jeux de données & pipeline analytique
 
 - Le dataset Food.com est téléchargé via la CLI Kaggle (automatisé dans la CI et via `scripts/download_data.py`).
 - `dataset_analysis/dataset_preprocessing.py` assemble les jeux d’entraînement : nettoyage des ingrédients, agrégation des interactions, enrichissement temporel.
 - Les features sont persistées dans `data/` et `ingr_map.pkl` pour réutilisation par la webapp et les notebooks.
 
-## Tests & qualité logicielle
+## 🧪 Tests & qualité logicielle
 
 - **Linting** : `uv run ruff check src tests scripts`.
 - **Tests unitaires & intégration** : `uv run pytest -v`.
@@ -153,7 +153,7 @@ open docs/build/html/index.html  # ou xdg-open sous Linux
 
 Les rapports HTML sont générés dans `htmlcov/`, et la CI publie les mêmes artefacts pour chaque exécution.
 
-## Structure du dépôt
+## 📁 Structure du dépôt
 
 ```text
 .
