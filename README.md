@@ -7,22 +7,22 @@
 <p align="center"><strong>Analyser comment l’effort culinaire façonne la popularité des recettes Food.com</strong></p>
 
 <p align="center">
+  <a href="https://github.com/TelecomParis-MSData25/mangetamain/pkgs/container/mangetamain">
+    <img src="https://img.shields.io/badge/Docker-GHCR.io-0db7ed?logo=docker&logoColor=white" alt="Images Docker">
+  </a>
+  <a href="https://telecomparis-msdata25.github.io/mangetamain/">
+    <img src="https://img.shields.io/badge/Docs-GitHub%20Pages-327FC7?logo=github" alt="Documentation GitHub Pages">
+  </a>
   <a href="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/ci.yml">
     <img src="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI/CD Pipeline">
   </a>
   <a href="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/dependencies.yml">
     <img src="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/dependencies.yml/badge.svg?branch=main" alt="Maintenance des dépendances">
   </a>
-  <a href="https://www.python.org/downloads/release/python-3120/">
-    <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
-  </a>
-  <a href="https://telecomparis-msdata25.github.io/mangetamain/">
-    <img src="https://img.shields.io/badge/Docs-GitHub%20Pages-327FC7?logo=github" alt="Documentation GitHub Pages">
-  </a>
   <img src="https://img.shields.io/endpoint?url=https://telecomparis-msdata25.github.io/mangetamain/badges/tests.json&logo=pytest&logoColor=white" alt="Statut des tests">
   <img src="https://img.shields.io/endpoint?url=https://telecomparis-msdata25.github.io/mangetamain/badges/coverage.json&logo=codecov&logoColor=white" alt="Couverture du code">
-  <a href="https://github.com/orgs/TelecomParis-MSData25/packages?repo_name=mangetamain">
-    <img src="https://img.shields.io/badge/Docker-GHCR.io-0db7ed?logo=docker&logoColor=white" alt="Images Docker">
+  <a href="https://www.python.org/downloads/release/python-3120/">
+    <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
   </a>
 </p>
 
