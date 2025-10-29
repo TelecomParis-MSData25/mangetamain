@@ -1,314 +1,170 @@
-# mangetamain
+<p align="center">
+  <img src="assets/logo_MTM.png" alt="Logo Mangetamain" width="200">
+</p>
 
-## Problématique
+<h1 align="center">Mangetamain</h1>
 
-**Comment l’effort culinaire influence-t-il la popularité des recettes ?**
+<p align="center"><strong>Analyser comment l’effort culinaire façonne la popularité des recettes Food.com</strong></p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Docker-GHCR.io-0db7ed?logo=docker&logoColor=white" alt="Images Docker">
+  <img src="https://img.shields.io/badge/Docs-GitHub%20Pages-327FC7?logo=github" alt="Documentation GitHub Pages">
+  <a href="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/ci.yml">
+    <img src="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI/CD Pipeline">
+  </a>
+  <img src="https://img.shields.io/badge/Tests-108%20passed-2ea44f?logo=pytest" alt="108 tests passés">
+  <img src="https://img.shields.io/badge/Couverture-94%25-22c55e" alt="Couverture 94%">
+  <a href="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/dependencies.yml">
+    <img src="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/dependencies.yml/badge.svg?branch=main" alt="Maintenance des dépendances">
+  </a>
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
+</p>
 
 ---
 
-## Développement et déploiement
+## Aperçu
 
-### 🐳 Utilisation avec Docker
+- `Mangetamain` construit un pipeline de science des données pour relier effort culinaire (temps, étapes, ingrédients) et popularité des recettes (notes, interactions) à partir du dataset Food.com.
+- L’application Streamlit (`src/webapp.py`) propose un storytelling interactif, complété par des modules analytiques (`src/`, `dataset_analysis/`) et une documentation Sphinx.
+- La chaîne CI/CD GitHub Actions orchestre validation du code, génération de la doc, publication d’images Docker multi-architectures et audit de sécurité.
 
-Le projet peut être containerisé et exécuté avec Docker pour faciliter le déploiement et assurer la portabilité.
+## Problématique & démarche analytique
 
-#### Image officielle du projet
+La question centrale qui guide le projet est : **« En quoi l’effort culinaire influence-t-il la popularité des recettes ? »**
 
-Une image Docker prête à l’emploi est publiée automatiquement par la CI/CD du dépôt GitHub. Pour l’utiliser :
+- L’effort est modélisé via `n_steps`, `n_ingredients`, `log_minutes` et des patterns d’effort extraits par nos utilitaires (`src/webapp_utils.py`, `dataset_analysis/`).
+- La popularité combine satisfaction (moyenne, médiane, intervalle de confiance des notes) et engagement (volume de reviews, interactions cumulées).
+- L’interface permet de croiser ces métriques, d’isoler des familles de recettes et de comparer effort perçu vs. succès rencontré pour aider créateurs et plateformes à prioriser leurs contenus culinaires.
 
-```bash
-docker pull ghcr.io/telecomparis-msdata25/mangetamain:latest
-docker run --rm -d --name mangetamain-app -p 8501:8501 ghcr.io/telecomparis-msdata25/mangetamain:latest
-```
+## Travail collectif & gouvernance
 
-- `docker pull` télécharge l’image officielle hébergée sur le registre du projet.
-- `docker run --rm -d --name mangetamain-app -p 8501:8501 …` lance l’application :
-  - `--rm` supprime le conteneur une fois arrêté.
-  - `-d` exécute le conteneur en arrière-plan.
-  - `--name mangetamain-app` attribue un nom lisible au conteneur.
-  - `-p 8501:8501` mappe le port 8501 du conteneur vers celui de l’hôte pour accéder à Streamlit sur `http://localhost:8501`.
+- Projet réalisé en équipe dans le cadre de la formation MSData : les tâches ont été suivies sur Jira.
+- Chaque user story Jira déclenche automatiquement la création d’une branche dédiée sur GitHub, ce qui garantit la traçabilité du flux `issue ➜ branche ➜ pull request`.
+- Les cérémonies (plannings, revues, rétros) sont consignées dans Jira et synchronisées avec l’historique Git pour documenter les décisions techniques.
 
-#### Construction de l'image Docker
+![Tableau de bord Jira](assets/board_Jira.png)
 
-```bash
-docker build -t mangetamain .
-```
+*Par défaut, le serveur Jira est accessible à l'adresse suivante : <https://benjaminlepourtois.atlassian.net/jira/software/projects/MTM/boards/3> mais n'est accessible qu'aux membres de l'équipe. Je peux vous fournir un accès si nécessaire.*
 
-Cette commande :
+---
+---
 
-- Lit le `Dockerfile` à la racine du projet
-- Installe toutes les dépendances nécessaires
-- Configure l'environnement Python
-- Prépare l'application Streamlit
+## Application en ligne
 
-#### Lancement du conteneur
+- L’application Streamlit est déployée sur Streamlit Cloud : <https://mangetamain-ms-data26.streamlit.app/>.
+- Le déploiement suit automatiquement les commits de la branche `main` et reflète à la fois les évolutions de l’interface (`src/webapp.py`) et des jeux de données préparés par la CI.
+- Les identifiants Kaggle configurés dans GitHub Actions permettent de régénérer les datasets nécessaires à l’instance Cloud pour garantir un rendu cohérent avec l’environnement local.
 
-```bash
-docker run -p 8501:8501 mangetamain
-```
+## Images Docker GHCR.io (GitHub Container Registry)
 
-Cette commande :
+La manière la plus simple d’exécuter l’application est d’utiliser les images Docker publiées automatiquement via la CI/CD GitHub Actions.
 
-- Démarre un conteneur basé sur l'image `mangetamain`
-- Map le port 8501 du conteneur vers le port 8501 de l'hôte
-- Rend l'application accessible à l'adresse : `http://localhost:8501`
+- Chaque push sur `main` génère une image publiée sur `ghcr.io/telecomparis-msdata25/mangetamain`.
+- Récupération de la dernière version :
 
-#### Options avancées
+  ```bash
+  docker pull ghcr.io/telecomparis-msdata25/mangetamain:latest
+  docker run --rm -p 8501:8501 ghcr.io/telecomparis-msdata25/mangetamain:latest
+  ```
 
-```bash
-# Lancer en arrière-plan (mode détaché)
-docker run -d -p 8501:8501 --name mangetamain-app mangetamain
+- Pour cibler une version précise, utilisez les tags `:main` ou `:sha-<commit>` visibles dans l’onglet *Packages* du dépôt GitHub.
 
-# Monter un volume pour les données
-docker run -p 8501:8501 -v $(pwd)/data:/app/data mangetamain
+## Démarrage rapide
 
-# Arrêter le conteneur
-docker stop mangetamain-app
+1. **Configurer l’accès Kaggle**
 
-# Supprimer le conteneur
-docker rm mangetamain-app
-```
+   ```bash
+   export KAGGLE_USERNAME="<votre_identifiant_kaggle>"
+   export KAGGLE_KEY="<votre_clef_api>"
+   ```
 
-### 🧪 Tests unitaires
+   ou bien créer le fichier de configuration attendu par la CLI Kaggle :
 
-Le projet inclut une suite complète de tests unitaires et d'intégration pour valider le fonctionnement du module d'analyse des données.
+   ```bash
+   mkdir -p ~/.kaggle
+   cat <<'EOF' > ~/.kaggle/kaggle.json
+   {"username":"<votre_identifiant_kaggle>","key":"<votre_clef_api>"}
+   EOF
+   chmod 600 ~/.kaggle/kaggle.json
+   ```
 
-#### Lancement des tests
+   Les identifiants sont disponibles dans votre profil Kaggle > *Settings* > *Create New API Token*. La CI GitHub Actions recharge ces mêmes variables pour télécharger les datasets automatiquement.
 
-**Tests unitaires uniquement :**
+2. **Installer les dépendances**
 
-```bash
-uv run pytest tests/test_data_analysis.py -v
-```
+   ```bash
+   uv sync --dev
+   ```
 
-**Tests d'intégration :**
+3. **Préparer les données Food.com**
 
-```bash
-uv run pytest tests/test_integration.py -v
-```
+   ```bash
+   uv run python scripts/download_data.py --target data
+   uv run python dataset_analysis/dataset_preprocessing.py
+   ```
 
-**Tous les tests :**
+4. **Lancer le tableau de bord Streamlit**
 
-```bash
-uv run pytest -v
-```
+   ```bash
+   uv run streamlit run src/webapp.py
+   ```
 
-#### Tests avec couverture de code
+Les notebooks dans `dataset_analysis/` et `src/data_analysis.py` illustrent les étapes de préparation, d’ingénierie de variables et de modélisation.
 
-```bash
-# Rapport de couverture détaillé
-uv run pytest --cov=src --cov-report=term-missing
+## Chaîne CI/CD
 
-# Générer un rapport HTML
-uv run pytest --cov=src --cov-report=html
-```
+La pipeline principale (`.github/workflows/ci.yml`) s’exécute à chaque push et se décline en plusieurs stages :
 
-#### Types de tests disponibles
+- **PR Checks** : linting Ruff, synchronisation `uv`, téléchargement automatisé du dataset Kaggle, tests Pytest avec couverture et build Sphinx.
+- **Main Pipeline** : répète les validations, publie les rapports de couverture HTML et des artefacts de tests.
+- **Build Docs** : recompile la documentation Sphinx et la prépare pour GitHub Pages.
+- **Deploy Docs** : déploie automatiquement la documentation sur la branche GitHub Pages du projet.
+- **Build & Push Docker** : publie des images multi-architectures (`linux/amd64`, `linux/arm64`) sur GHCR avec des tags `latest`, `main`, `sha`.
+- **Security Scan** : exécute Trivy pour remonter les vulnérabilités dans l’onglet *Security*.
 
-- **Tests unitaires** (`test_data_analysis.py`) : 17 tests avec données simulées
-- **Tests d'intégration** (`test_integration.py`) : 11 tests avec le vrai dataset
-- **Tests marqués** :
-  - `@pytest.mark.unit` : Tests unitaires rapides
-  - `@pytest.mark.integration` : Tests d'intégration
-  - `@pytest.mark.slow` : Tests plus longs
+Une seconde pipeline (`.github/workflows/dependencies.yml`) tourne chaque lundi pour :
 
-#### Tests de l'application web
+- Mettre à jour automatiquement le lockfile `uv.lock` et ouvrir une PR dédiée si nécessaire.
+- Lancer un audit de sécurité (Safety, Bandit) et archiver les rapports.
 
-Le projet inclut également une suite complète de tests pour l'application Streamlit qui valide l'interface utilisateur et les fonctionnalités d'analyse interactive.
+## Documentation
 
-**Tests de la webapp uniquement :**
+- Documentation API et guide utilisateur publiés automatiquement sur GitHub Pages : <https://telecomparis-msdata25.github.io/mangetamain/>.
+- Lancement local :
 
 ```bash
-uv run pytest tests/test_webapp.py -v
+uv run sphinx-apidoc -o docs/source ../src --force
+uv run sphinx-build -b html docs/source docs/build/html
+open docs/build/html/index.html  # ou xdg-open sous Linux
 ```
 
-**Tests avec couverture de l'application :**
+## Jeux de données & pipeline analytique
 
-```bash
-# Rapport de couverture pour webapp et modules d'analyse
-uv run pytest tests/ --cov=src --cov=dataset_analysis --cov-report=term-missing
+- Le dataset Food.com est téléchargé via la CLI Kaggle (automatisé dans la CI et via `scripts/download_data.py`).
+- `dataset_analysis/dataset_preprocessing.py` assemble les jeux d’entraînement : nettoyage des ingrédients, agrégation des interactions, enrichissement temporel.
+- Les features sont persistées dans `data/` et `ingr_map.pkl` pour réutilisation par la webapp et les notebooks.
 
-# Générer un rapport HTML complet
-uv run pytest tests/ --cov=src --cov=dataset_analysis --cov-report=html
+## Tests & qualité logicielle
+
+- **Linting** : `uv run ruff check src tests scripts`.
+- **Tests unitaires & intégration** : `uv run pytest -v`.
+- **Couverture** : `uv run pytest --cov=src --cov-report=term-missing --cov-report=html`.
+- **Sécurité locale** (optionnel) : `uv run safety check`, `uv run bandit -r src`.
+
+Les rapports HTML sont générés dans `htmlcov/`, et la CI publie les mêmes artefacts pour chaque exécution.
+
+## Structure du dépôt
+
+```text
+.
+├── src/                 # Modules applicatifs, webapp Streamlit, utilitaires d'analyse
+├── dataset_analysis/    # Préparation des données et notebooks explicatifs
+├── scripts/             # Outillage (téléchargement Kaggle, maintenance)
+├── docs/                # Documentation Sphinx (source & build)
+├── tests/               # Suite Pytest (unitaires, intégration, webapp)
+└── assets/              # Identité visuelle (logo, illustrations)
 ```
-
-#### Types de tests webapp disponibles
-
-- **Tests de l'interface** (`test_webapp.py`) : 91 tests couvrant l'interface Streamlit
-- **Tests des composants** :
-  - Configuration et logging
-  - Génération de données simulées
-  - Affichage des métriques et statistiques
-  - Visualisations interactives (corrélations, heatmaps, boxplots)
-  - Modèles prédictifs et graphiques de prédiction
-  - Gestion d'erreurs et cas limites
-
-#### Exécution complète des tests
-
-```bash
-# Tous les tests (webapp + analyse de données)
-uv run pytest tests/ -v
-
-# Tests avec seuil de couverture
-uv run pytest tests/ --cov=src --cov=dataset_analysis
-
-# Tests en parallèle (plus rapide)
-uv run pytest tests/ -n auto
-```
-
-#### Structure complète des tests
-
-```
-tests/
-├── __init__.py
-├── test_data_analysis.py      # Tests unitaires avec données simulées
-├── test_integration.py        # Tests d'intégration avec vrai dataset
-└── test_webapp.py            # Tests de l'application Streamlit
-```
-
-Les tests webapp couvrent :
-
-- La configuration Streamlit et système de logging
-- L'import et le chargement des modules d'analyse
-- La génération et la validation des données simulées
-- L'affichage des métriques et des statistiques descriptives
-- Les visualisations interactives (scatter plots, heatmaps, boxplots)
-- La configuration et l'entraînement des modèles
-- Les graphiques de prédiction avec les courbes de régression
-- La gestion d'erreurs et les cas d'usage limites
-- Les interfaces utilisateur et la navigation entre onglets
-
-### 📚 Documentation avec Sphinx
-
-Le projet utilise Sphinx pour générer une documentation API complète et professionnelle du code source.
-
-#### Structure de la documentation
-
-```
-docs/
-├── build/           # Documentation générée
-│   └── html/        # Version HTML de la documentation
-├── source/          # Sources de la documentation
-│   ├── conf.py      # Configuration Sphinx
-│   ├── index.rst    # Page d'accueil
-│   └── modules.rst  # Documentation des modules
-├── Makefile         # Commandes de build (Unix)
-└── make.bat         # Commandes de build (Windows)
-```
-
-#### Génération de la documentation
-
-**Générer automatiquement la documentation API :**
-
-```bash
-cd docs
-uv run sphinx-apidoc -o source ../src --force
-```
-
-**Construire la documentation HTML :**
-
-```bash
-cd docs
-uv run sphinx-build -b html source build/html
-```
-
-**Ou utiliser le Makefile :**
-
-```bash
-cd docs
-make html
-```
-
-#### Consultation de la documentation
-
-Une fois générée, la documentation est accessible via :
-
-- **Fichier local** : `docs/build/html/index.html`
-- **Serveur local** : Ouvrir le fichier dans un navigateur
-
-#### Fonctionnalités de la documentation
-
-- **API complète** : Documentation automatique de toutes les classes et fonctions
-- **Docstrings** : Extraction automatique des docstrings Python
-- **Navigation** : Index des modules, classes et fonctions
-- **Recherche** : Moteur de recherche intégré
-- **Thème professionnel** : Interface claire et responsive
-
-#### Mise à jour de la documentation
-
-```bash
-# Regénérer complètement la documentation
-cd docs
-uv run sphinx-apidoc -o source ../src --force
-make clean
-make html
-```
-
-La documentation Sphinx est particulièrement utile pour :
-
-- Comprendre l'architecture du code
-- Explorer les APIs disponibles
-- Intégrer le module dans d'autres projets
-- Maintenir une documentation à jour automatiquement
 
 ---
 
-## A. Définitions
-
-### 1. Popularité
-
-La popularité d'une recette peut être mesurée selon deux axes :
-
-- **Satisfaction** :
-
-  - Définie par la note moyenne attribuée (`avg_rating`), la médiane (`median_rating`), et l'écart-type (`rating_std`).
-  - À considérer uniquement si le nombre de notes (`n_ratings`) est suffisant par rapport au nombre de reviews (définir un ratio minimal).
-  - Si `rating = 0`, aucune note n’a été donnée, mais il peut y avoir des reviews.
-
-- **Engagement** :
-  - Mesuré par le nombre de reviews (`reviews`), variable permettant de définir `n_interactions` en comptant le nombre de lignes existantes `reviews`/ recette.
-  - Plus il y a de reviews, plus la recette est considérée comme populaire (dcp indépendamment de la note).
-
-### 2. Effort culinaire
-
-L’effort requis pour une recette est estimé à partir de :
-
-- Le nombre d’étapes (`n_steps`) : plus il est élevé, plus l’effort est grand.
-- Le nombre d’ingrédients (`n_ingredients`) : possibilité d’exclure les ingrédients considérés comme accessoires (condiments, etc.).
-- Le temps de préparation (`log_minutes`) : temps total -transformé en logarithme pour réduire l’asymétrie-.
-
----
-
-## B. Variables
-
-### A. Effort (X)
-
-- `log_minutes` : temps de préparation (log-transformé)
-- `n_steps` : nombre d’étapes
-- `n_ingredients` : nombre d’ingrédients
-
-### B. Popularité
-
-Deux dimensions complémentaires :
-
-#### 1. Satisfaction (Y₁)
-
-- `n_ratings` : nombre de notes
-- `avg_rating` : moyenne des notes
-- `median_rating` : médiane des notes
-- `rating_std` : écart-type des notes
-
-**Variables à créer :**
-
-- `bayes_mean` : moyenne bayésienne (corrige les petits échantillons)
-- `wilson_lb` : borne inférieure de l’intervalle de Wilson (notes positives ≥4/5)
-
-#### 2. Engagement (Y₂)
-
-- `n_interactions` : total des interactions
-- `n_reviews_text` : nombre de reviews avec texte
-- `n_users` : utilisateurs uniques
-- `age_months` : âge de la recette (en mois)
-- `interactions_per_month` : interactions normalisées par l’âge (pour comparer recettes anciennes et récentes)
-
----
+Vous pouvez suivre l’avancement, les user stories et les décisions d’équipe directement depuis Jira et GitHub pour retracer l’intégralité du projet Mangetamain.
