@@ -51,13 +51,14 @@ BACKUP_COUNT: Final[int] = 3
 
 def _create_log_directory() -> None:
     """
-    Créer le répertoire de logs s'il n'existe pas.
-    
-    Raises:
-        OSError: Si la création du répertoire échoue pour des raisons de permissions.
-        
-    Note:
-        Utilise exist_ok=True pour éviter les erreurs si le répertoire existe déjà.
+    Crée le répertoire de logs s'il n'existe pas.
+
+    :returns: ``None``.
+    :rtype: None
+    :raises OSError: Si la création du répertoire échoue.
+
+    .. note::
+       Utilise ``exist_ok=True`` pour éviter les erreurs si le répertoire existe déjà.
     """
     try:
         os.makedirs(LOG_DIR, exist_ok=True)
@@ -68,15 +69,14 @@ def _create_log_directory() -> None:
 
 def _create_formatter() -> logging.Formatter:
     """
-    Créer le formateur standard pour tous les handlers de log.
-    
-    Returns:
-        logging.Formatter: Formateur configuré avec timestamp, nom, niveau et message.
-        
-    Example:
-        Format de sortie::
-        
-            2024-01-15 14:30:25 - webapp - INFO - Application démarrée
+    Crée le formateur standard pour tous les handlers de log.
+
+    :returns: Formateur configuré avec timestamp, nom, niveau et message.
+    :rtype: logging.Formatter
+
+    .. code-block:: text
+
+       2024-01-15 14:30:25 - webapp - INFO - Application démarrée
     """
     return logging.Formatter(
         fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -86,18 +86,15 @@ def _create_formatter() -> logging.Formatter:
 
 def _create_debug_handler(formatter: logging.Formatter) -> RotatingFileHandler:
     """
-    Créer le handler pour les logs de debug avec rotation.
-    
-    Args:
-        formatter (logging.Formatter): Formateur à utiliser pour ce handler.
-        
-    Returns:
-        RotatingFileHandler: Handler configuré pour les logs de debug.
-        
-    Note:
-        - Niveau: DEBUG et plus
-        - Rotation: 5MB max, 3 fichiers de sauvegarde
-        - Encodage: UTF-8
+    Crée le handler pour les logs de debug avec rotation.
+
+    :param formatter: Formateur à appliquer au handler.
+    :type formatter: logging.Formatter
+    :returns: Handler configuré pour les logs de debug.
+    :rtype: RotatingFileHandler
+
+    .. note::
+       Niveau ``DEBUG`` et plus, rotation 5 MB, 3 fichiers de sauvegarde, encodage UTF-8.
     """
     handler = RotatingFileHandler(
         filename=DEBUG_LOG_FILE,
@@ -112,18 +109,15 @@ def _create_debug_handler(formatter: logging.Formatter) -> RotatingFileHandler:
 
 def _create_error_handler(formatter: logging.Formatter) -> RotatingFileHandler:
     """
-    Créer le handler pour les logs d'erreur avec rotation.
-    
-    Args:
-        formatter (logging.Formatter): Formateur à utiliser pour ce handler.
-        
-    Returns:
-        RotatingFileHandler: Handler configuré pour les logs d'erreur uniquement.
-        
-    Note:
-        - Niveau: ERROR et plus (ERROR, CRITICAL)
-        - Rotation: 5MB max, 3 fichiers de sauvegarde
-        - Encodage: UTF-8
+    Crée le handler pour les logs d'erreur avec rotation.
+
+    :param formatter: Formateur à appliquer au handler.
+    :type formatter: logging.Formatter
+    :returns: Handler dédié aux messages d'erreur.
+    :rtype: RotatingFileHandler
+
+    .. note::
+       Niveau ``ERROR`` et plus, rotation 5 MB, 3 fichiers de sauvegarde, encodage UTF-8.
     """
     handler = RotatingFileHandler(
         filename=ERROR_LOG_FILE,
@@ -138,17 +132,15 @@ def _create_error_handler(formatter: logging.Formatter) -> RotatingFileHandler:
 
 def _create_console_handler(formatter: logging.Formatter) -> logging.StreamHandler:
     """
-    Créer le handler pour l'affichage console.
-    
-    Args:
-        formatter (logging.Formatter): Formateur à utiliser pour ce handler.
-        
-    Returns:
-        logging.StreamHandler: Handler configuré pour l'affichage console.
-        
-    Note:
-        - Niveau: INFO et plus
-        - Sortie: sys.stdout
+    Crée le handler pour l'affichage console.
+
+    :param formatter: Formateur à appliquer au handler.
+    :type formatter: logging.Formatter
+    :returns: Handler configuré pour l'affichage console.
+    :rtype: logging.StreamHandler
+
+    .. note::
+       Niveau ``INFO`` et plus, sortie ``sys.stdout``.
     """
     handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
@@ -158,20 +150,14 @@ def _create_console_handler(formatter: logging.Formatter) -> logging.StreamHandl
 
 def _configure_logger() -> logging.Logger:
     """
-    Configurer et initialiser le logger principal de l'application.
-    
-    Returns:
-        logging.Logger: Logger configuré avec tous les handlers.
-        
-    Raises:
-        OSError: Si la création des fichiers de log échoue.
-        
-    Note:
-        Le logger est configuré avec:
-        - Niveau global: DEBUG
-        - Handler debug: Tous les niveaux vers debug.log
-        - Handler erreur: ERROR+ vers errors.log  
-        - Handler console: INFO+ vers stdout
+    Configure et initialise le logger principal de l'application.
+
+    :returns: Logger configuré avec tous les handlers.
+    :rtype: logging.Logger
+    :raises OSError: Si la création des fichiers de log échoue.
+
+    .. note::
+       Niveau global ``DEBUG`` ; handlers dédiés pour debug.log, errors.log et la console.
     """
     # Créer le logger principal
     app_logger = logging.getLogger("webapp")
@@ -204,21 +190,19 @@ def _configure_logger() -> logging.Logger:
 
 def get_logger(name: str = "webapp") -> logging.Logger:
     """
-    Récupérer une instance du logger configuré.
-    
-    Args:
-        name (str, optional): Nom du logger. Defaults to "webapp".
-        
-    Returns:
-        logging.Logger: Instance du logger configuré.
-        
-    Example:
-        Utilisation dans un module::
-        
-            from src.logger import get_logger
-            
-            logger = get_logger(__name__)
-            logger.info("Module initialisé")
+    Récupère une instance du logger configuré.
+
+    :param name: Nom du logger souhaité.
+    :type name: str
+    :returns: Logger configuré correspondant au nom demandé.
+    :rtype: logging.Logger
+
+    .. code-block:: python
+
+       from src.logger import get_logger
+
+       logger = get_logger(__name__)
+       logger.info("Module initialisé")
     """
     return logging.getLogger(name)
 
@@ -249,21 +233,26 @@ Note:
 # --- Configuration pour les tests ---
 def disable_logging() -> None:
     """
-    Désactiver temporairement le logging (utile pour les tests).
-    
-    Note:
-        Remet le niveau à CRITICAL pour éviter la pollution des sorties de test.
-        Utilisez enable_logging() pour réactiver.
+    Désactive temporairement le logging (utile pour les tests).
+
+    :returns: ``None``.
+    :rtype: None
+
+    .. note::
+       Le niveau est fixé à ``CRITICAL`` ; utilisez ``enable_logging()`` pour rétablir la configuration.
     """
     logging.getLogger("webapp").setLevel(logging.CRITICAL)
 
 
 def enable_logging() -> None:
     """
-    Réactiver le logging après désactivation.
-    
-    Note:
-        Remet le niveau à DEBUG pour retrouver le comportement normal.
+    Réactive le logging après désactivation.
+
+    :returns: ``None``.
+    :rtype: None
+
+    .. note::
+       Le niveau est remis à ``DEBUG`` pour retrouver le comportement normal.
     """
     logging.getLogger("webapp").setLevel(logging.DEBUG)
 

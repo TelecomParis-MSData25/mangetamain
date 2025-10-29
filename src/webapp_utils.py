@@ -20,7 +20,26 @@ from dataset_analysis.utils import summarize_by_effort_quantiles
 
 @dataclass(frozen=True)
 class DescriptiveStats:
-    """Résumé statistique d'une variable numérique."""
+    """
+    Résume les statistiques descriptives d'une variable numérique.
+
+    :ivar mean: Moyenne arithmétique.
+    :vartype mean: float
+    :ivar median: Médiane.
+    :vartype median: float
+    :ivar std: Écart-type.
+    :vartype std: float
+    :ivar minimum: Valeur minimale observée.
+    :vartype minimum: float
+    :ivar maximum: Valeur maximale observée.
+    :vartype maximum: float
+    :ivar q1: Premier quartile (25 %).
+    :vartype q1: float
+    :ivar q3: Troisième quartile (75 %).
+    :vartype q3: float
+    :ivar count: Effectif total des valeurs non manquantes.
+    :vartype count: int
+    """
 
     mean: float
     median: float
@@ -32,7 +51,12 @@ class DescriptiveStats:
     count: int
 
     def to_metric_dict(self) -> dict[str, float]:
-        """Retourne un mapping simple, utile pour l'affichage."""
+        """
+        Transforme l'instance en dictionnaire prêt pour l'affichage.
+
+        :returns: Mapping clé/valeur avec les statistiques principales.
+        :rtype: dict[str, float]
+        """
         return {
             "mean": self.mean,
             "median": self.median,
@@ -47,7 +71,20 @@ class DescriptiveStats:
 
 @dataclass(frozen=True)
 class RegressionResult:
-    """Informations relatives à une régression linéaire simple."""
+    """
+    Informations principales d'une régression linéaire simple.
+
+    :ivar slope: Coefficient directeur de la droite ajustée.
+    :vartype slope: float
+    :ivar intercept: Ordonnée à l'origine.
+    :vartype intercept: float
+    :ivar r_squared: Coefficient de détermination R².
+    :vartype r_squared: float
+    :ivar x_curve: Abscisses de la courbe ajustée.
+    :vartype x_curve: np.ndarray
+    :ivar y_curve: Ordonnées de la courbe ajustée.
+    :vartype y_curve: np.ndarray
+    """
 
     slope: float
     intercept: float
@@ -58,7 +95,16 @@ class RegressionResult:
 
 @dataclass(frozen=True)
 class EffortPatternData:
-    """Données permettant de tracer l'hypothèse et la réalité observée."""
+    """
+    Données permettant de tracer l'hypothèse et la réalité observée.
+
+    :ivar categories: Ordre des catégories d'effort.
+    :vartype categories: list[str]
+    :ivar expected: Valeurs attendues selon l'hypothèse.
+    :vartype expected: np.ndarray
+    :ivar observed: Valeurs observées (moyenne réelle).
+    :vartype observed: np.ndarray
+    """
 
     categories: list[str]
     expected: np.ndarray
@@ -67,7 +113,14 @@ class EffortPatternData:
 
 @dataclass(frozen=True)
 class QuartilePatternData:
-    """Synthèse du pattern en U observé sur les quartiles d'effort."""
+    """
+    Synthétise le pattern en U observé sur les quartiles d'effort.
+
+    :ivar labels: Libellés utilisés pour les strates d'effort.
+    :vartype labels: Sequence[str]
+    :ivar means: Moyennes de popularité par quartile.
+    :vartype means: pd.Series
+    """
 
     labels: Sequence[str]
     means: pd.Series
@@ -75,7 +128,16 @@ class QuartilePatternData:
 
 @dataclass(frozen=True)
 class FilterOptions:
-    """Bornes et valeurs possibles pour construire les filtres Streamlit."""
+    """
+    Bornes et valeurs possibles pour construire les filtres Streamlit.
+
+    :ivar age_range: Intervalle minimal/maximal d'âge des recettes (en mois).
+    :vartype age_range: tuple[float, float] | None
+    :ivar interactions_range: Intervalle des interactions utilisateur.
+    :vartype interactions_range: tuple[int, int] | None
+    :ivar effort_categories: Catégories d'effort disponibles pour filtrage.
+    :vartype effort_categories: list[str]
+    """
 
     age_range: tuple[float, float] | None
     interactions_range: tuple[int, int] | None
@@ -91,14 +153,14 @@ def compute_histogram_figure(
     """
     Génère une figure Plotly pour l'histogramme d'une série numérique.
 
-    Parameters
-    ----------
-    series : pd.Series
-        Série de valeurs numériques (NaN déjà filtrés).
-    var_label : str
-        Etiquette descriptive à utiliser pour les axes/titres.
-    nbins : int | None
-        Nombre de bacs. Si None, utilise une heuristique sqrt.
+    :param series: Série de valeurs numériques (NaN déjà filtrés).
+    :type series: pd.Series
+    :param var_label: Étiquette descriptive à afficher sur le graphique.
+    :type var_label: str
+    :param nbins: Nombre de bacs souhaité ; ``None`` applique une heuristique racine carrée.
+    :type nbins: int | None
+    :returns: Figure Plotly contenant l'histogramme.
+    :rtype: go.Figure
     """
     clean = series.dropna()
     if nbins is None:
@@ -123,10 +185,11 @@ def compute_descriptive_stats(series: pd.Series) -> DescriptiveStats:
     """
     Calcule les statistiques descriptives d'une série numérique.
 
-    Parameters
-    ----------
-    series : pd.Series
-        Série de valeurs numériques.
+    :param series: Série de valeurs numériques.
+    :type series: pd.Series
+    :returns: Objet ``DescriptiveStats`` avec les métriques calculées.
+    :rtype: DescriptiveStats
+    :raises ValueError: Si la série ne contient aucune valeur exploitable.
     """
     clean = series.dropna()
     if clean.empty:
@@ -148,14 +211,14 @@ def fit_simple_regression(data: pd.DataFrame, x_col: str, y_col: str) -> Regress
     """
     Ajuste une régression linéaire simple et retourne les paramètres principaux.
 
-    Parameters
-    ----------
-    data : pd.DataFrame
-        Données contenant les colonnes à corréler.
-    x_col : str
-        Nom de la variable explicative.
-    y_col : str
-        Nom de la variable réponse.
+    :param data: Données contenant les colonnes à mettre en relation.
+    :type data: pd.DataFrame
+    :param x_col: Nom de la variable explicative.
+    :type x_col: str
+    :param y_col: Nom de la variable réponse.
+    :type y_col: str
+    :returns: Résultat de la régression ou ``None`` si l'ajustement est impossible.
+    :rtype: RegressionResult | None
     """
     if x_col not in data.columns or y_col not in data.columns:
         return None
@@ -185,6 +248,11 @@ def compute_effort_pattern(data: pd.DataFrame) -> EffortPatternData | None:
     Calcule les valeurs attendues et observées par catégorie d'effort.
 
     L'ordre des catégories est harmonisé pour garantir un affichage cohérent.
+
+    :param data: Dataset contenant au minimum ``effort_category`` et ``bayes_mean``.
+    :type data: pd.DataFrame
+    :returns: Données prêtes pour la visualisation ou ``None`` si les colonnes manquent.
+    :rtype: EffortPatternData | None
     """
     if "effort_category" not in data.columns or "bayes_mean" not in data.columns:
         return None
@@ -231,6 +299,13 @@ def compute_quartile_pattern(
     Retourne la moyenne de `bayes_mean` par quartile d'effort.
 
     Les colonnes candidates sont testées successivement pour déterminer la meilleure option.
+
+    :param data: Dataset contenant la variable ``bayes_mean``.
+    :type data: pd.DataFrame
+    :param effort_col_candidates: Liste de colonnes à tester pour la stratification d'effort.
+    :type effort_col_candidates: Iterable[str]
+    :returns: Structure ``QuartilePatternData`` ou ``None`` si le calcul échoue.
+    :rtype: QuartilePatternData | None
     """
     if "bayes_mean" not in data.columns:
         return None
@@ -279,6 +354,13 @@ def describe_numeric_columns(
 ) -> dict[str, DescriptiveStats]:
     """
     Calcule les DescriptiveStats pour un ensemble de colonnes numériques.
+
+    :param data: DataFrame contenant les colonnes à résumer.
+    :type data: pd.DataFrame
+    :param columns: Noms des colonnes à inspecter.
+    :type columns: Sequence[str]
+    :returns: Mapping ``{colonne: DescriptiveStats}``.
+    :rtype: dict[str, DescriptiveStats]
     """
     summaries: dict[str, DescriptiveStats] = {}
     for column in columns:
@@ -290,6 +372,11 @@ def describe_numeric_columns(
 def infer_filter_options(data: pd.DataFrame) -> FilterOptions:
     """
     Détermine les bornes utiles pour configurer les filtres latéraux.
+
+    :param data: Dataset courant.
+    :type data: pd.DataFrame
+    :returns: Options de filtrage exploitables dans l'UI.
+    :rtype: FilterOptions
     """
     age_range: tuple[float, float] | None = None
     interactions_range: tuple[int, int] | None = None

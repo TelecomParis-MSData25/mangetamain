@@ -34,7 +34,12 @@ logger: logging.Logger | None = None
 
 
 def _setup_logging() -> logging.Logger:
-    """Initialise le logger de l'application."""
+    """
+    Initialise le logger de l'application.
+
+    :returns: Logger configuré (ou logger générique si l'import échoue).
+    :rtype: logging.Logger
+    """
     global logger
     try:
         from src.logger import logger as custom_logger
@@ -57,7 +62,14 @@ _PLOTLY_SUPPORTS_USE_CONTAINER = "use_container_width" in _PLOTLY_CHART_PARAMS
 
 
 def _plotly_config(width: str) -> dict:
-    """Mappe la notion de largeur souhaitée vers la configuration Plotly appropriée."""
+    """
+    Mappe la notion de largeur souhaitée vers la configuration Plotly appropriée.
+
+    :param width: Largeur souhaitée (`'stretch'` ou `'content'`).
+    :type width: str
+    :returns: Paramètres de configuration Plotly correspondant.
+    :rtype: dict
+    """
     responsive = width == "stretch"
     return {
         "responsive": responsive,
@@ -67,7 +79,17 @@ def _plotly_config(width: str) -> dict:
 
 
 def _plotly_display(fig: go.Figure, *, width: str = "stretch") -> None:
-    """Affiche un graphique Plotly en respectant la convention width/content."""
+    """
+    Affiche un graphique Plotly en respectant la convention de largeur demandée.
+
+    :param fig: Figure Plotly à représenter.
+    :type fig: go.Figure
+    :param width: Largeur d'affichage (`'stretch'` ou `'content'`).
+    :type width: str
+    :returns: ``None``.
+    :rtype: None
+    :raises ValueError: Si ``width`` n'est pas reconnu.
+    """
     if width not in {"stretch", "content"}:
         raise ValueError("La largeur doit être 'stretch' ou 'content'.")
     config = _plotly_config(width)
@@ -87,11 +109,8 @@ def _import_analysis_modules() -> tuple[bool, object | None]:
     """
     Tente d'importer les modules d'analyse réels.
 
-    Returns
-    -------
-    Tuple[bool, object | None]
-        Indique si les modules sont disponibles et, le cas échéant,
-        retourne la fonction build_analysis_dataset.
+    :returns: Tuple ``(disponible, build_analysis_dataset)``.
+    :rtype: tuple[bool, object | None]
     """
     try:
         from dataset_analysis.dataset_preprocessing import build_analysis_dataset
@@ -110,9 +129,10 @@ def load_real_datasets(_build_analysis_dataset_func):
     """
     Charge les datasets nettoyés lorsqu'ils sont disponibles.
 
-    Returns
-    -------
-    Tuple[pd.DataFrame | None, pd.DataFrame | None, pd.DataFrame | None, bool]
+    :param _build_analysis_dataset_func: Fonction permettant de construire les datasets préparés.
+    :type _build_analysis_dataset_func: Callable[..., tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]]
+    :returns: Tuple ``(recipes_df, interactions_df, analysis_df, succès)`` où chaque DataFrame peut être ``None``.
+    :rtype: tuple[pd.DataFrame | None, pd.DataFrame | None, pd.DataFrame | None, bool]
     """
     try:
         recipes_df, interactions_df, analysis_df = _build_analysis_dataset_func(save=False)
@@ -139,6 +159,11 @@ def generate_sample_data(n_recipes: int = 1000) -> pd.DataFrame:
     """
     Génère un dataset simulé pour illustrer la narration lorsqu'aucune donnée réelle
     n'est disponible localement.
+
+    :param n_recipes: Nombre de recettes synthétiques à créer.
+    :type n_recipes: int
+    :returns: DataFrame simulé reprenant les principales variables d'analyse.
+    :rtype: pd.DataFrame
     """
     logger.info("Génération de %d recettes simulées...", n_recipes)
     np.random.seed(42)
@@ -216,7 +241,12 @@ def generate_sample_data(n_recipes: int = 1000) -> pd.DataFrame:
 
 
 def _configure_streamlit() -> None:
-    """Applique les réglages généraux de la page."""
+    """
+    Applique les réglages généraux de la page Streamlit.
+
+    :returns: ``None``.
+    :rtype: None
+    """
     st.set_page_config(
         page_title="Effort culinaire & Popularité",
         page_icon="assets/logo_MTM.png",
@@ -226,7 +256,12 @@ def _configure_streamlit() -> None:
 
 
 def _prepare_analysis_data() -> tuple[pd.DataFrame, str]:
-    """Charge les données réelles si possible, sinon génère un échantillon simulé."""
+    """
+    Charge les données d'analyse réelles ou bascule sur un échantillon simulé.
+
+    :returns: Tuple ``(dataset, origine)`` où ``origine`` vaut ``"réelles"`` ou ``"simulées"``.
+    :rtype: tuple[pd.DataFrame, str]
+    """
     has_real_data, build_analysis_dataset = _import_analysis_modules()
     if has_real_data and build_analysis_dataset:
         _, _, analysis_df, success = load_real_datasets(build_analysis_dataset)
@@ -238,7 +273,16 @@ def _prepare_analysis_data() -> tuple[pd.DataFrame, str]:
 
 
 def _render_sidebar(data_origin: str, dataset: pd.DataFrame) -> pd.DataFrame:
-    """Affiche les informations de contexte et renvoie le dataset filtré."""
+    """
+    Affiche les filtres latéraux et retourne le dataset filtré.
+
+    :param data_origin: Provenance des données (``"réelles"`` ou ``"simulées"``).
+    :type data_origin: str
+    :param dataset: Jeu de données initial à filtrer.
+    :type dataset: pd.DataFrame
+    :returns: DataFrame filtré selon les choix de l'utilisateur.
+    :rtype: pd.DataFrame
+    """
     # Charger l’image logo
     logo = Image.open("assets/logo_MTM.png")
     st.sidebar.image(logo)         # ajuste la taille de l'image
@@ -325,11 +369,28 @@ def _render_sidebar(data_origin: str, dataset: pd.DataFrame) -> pd.DataFrame:
 
 
 def _is_valid_number(value: float | None) -> bool:
+    """
+    Vérifie qu'une valeur numérique est définie et non ``NaN``.
+
+    :param value: Valeur à tester.
+    :type value: float | None
+    :returns: ``True`` si la valeur est exploitable, ``False`` sinon.
+    :rtype: bool
+    """
     return value is not None and not np.isnan(value)
 
 
 def _compute_story_indicators(data: pd.DataFrame, quartile_pattern) -> dict:
-    """Prépare les indicateurs chiffrés utiles à la narration."""
+    """
+    Calcule les indicateurs chiffrés affichés en tête de page.
+
+    :param data: Dataset filtré actuellement visible.
+    :type data: pd.DataFrame
+    :param quartile_pattern: Résultat du calcul de pattern en quartiles (ou ``None``).
+    :type quartile_pattern: webapp_utils.QuartilePatternData | None
+    :returns: Dictionnaire des indicateurs (recettes, efforts, corrélations, etc.).
+    :rtype: dict
+    """
     indicators: dict = {"recipes": len(data)}
 
     indicators["avg_popularity"] = (
@@ -370,7 +431,16 @@ def _compute_story_indicators(data: pd.DataFrame, quartile_pattern) -> dict:
 
 
 def _render_metrics(indicators: dict, total_count: int | None = None) -> None:
-    """Affiche les principaux compteurs en haut de page."""
+    """
+    Affiche les indicateurs clés sous forme de compteurs Streamlit.
+
+    :param indicators: Indicateurs calculés via ``_compute_story_indicators``.
+    :type indicators: dict
+    :param total_count: Taille totale du dataset avant filtrage.
+    :type total_count: int | None
+    :returns: ``None``.
+    :rtype: None
+    """
     col1, col2, col3 = st.columns(3)
 
     col1.metric("Recettes analysées", f"{indicators['recipes']:,}")
@@ -407,7 +477,16 @@ def _render_metrics(indicators: dict, total_count: int | None = None) -> None:
 
 
 def _render_patterns(pattern, quartile_pattern) -> None:
-    """Affiche les visualisations principales."""
+    """
+    Affiche les visualisations principales du storytelling.
+
+    :param pattern: Données agrégées par catégorie d'effort (ou ``None``).
+    :type pattern: webapp_utils.EffortPatternData | None
+    :param quartile_pattern: Données agrégées par quartile d'effort (ou ``None``).
+    :type quartile_pattern: webapp_utils.QuartilePatternData | None
+    :returns: ``None``.
+    :rtype: None
+    """
     if pattern is None and quartile_pattern is None:
         st.info(
             "Les colonnes nécessaires aux visualisations (effort_category, bayes_mean) "
@@ -594,7 +673,12 @@ def _render_patterns(pattern, quartile_pattern) -> None:
 
 
 def _render_methodology_section() -> None:
-    """Rapelle les étapes de préparation décrites dans le rapport."""
+    """
+    Présente les encarts méthodologiques et contextuels dans des volets repliables.
+
+    :returns: ``None``.
+    :rtype: None
+    """
     with st.expander("Comment avons-nous préparé les données ?", expanded=False):
         st.markdown(
             "- Nettoyage des temps extrêmes : suppression des recettes < 1 minute "
@@ -618,7 +702,14 @@ def _render_methodology_section() -> None:
 
 
 def _render_correlation_matrix(data: pd.DataFrame) -> None:
-    """Affiche la matrice de corrélation sur un sous-ensemble de variables."""
+    """
+    Affiche la matrice de corrélation sur un sous-ensemble de variables cibles.
+
+    :param data: Dataset filtré contenant les colonnes numériques.
+    :type data: pd.DataFrame
+    :returns: ``None``.
+    :rtype: None
+    """
     target_vars = [
         "log_minutes",
         "n_steps",
@@ -805,7 +896,14 @@ def _render_correlation_matrix(data: pd.DataFrame) -> None:
         )
 
 def _render_explorer(data: pd.DataFrame) -> None:
-    """Section interactive pour croiser effort et popularité."""
+    """
+    Affiche la section d'exploration libre effort/popularité.
+
+    :param data: Dataset filtré courant.
+    :type data: pd.DataFrame
+    :returns: ``None``.
+    :rtype: None
+    """
     if data.empty:
         st.info("Aucune donnée disponible avec les filtres actuels.")
         return
@@ -958,26 +1056,30 @@ def _render_explorer(data: pd.DataFrame) -> None:
             unsafe_allow_html=True,
         )
 
-
-    if "effort_category" in data.columns:
-        cat_counts = (
-            data["effort_category"]
-            .value_counts(normalize=True)
-            .sort_index()
-            .rename_axis("Effort")
-            .reset_index(name="Part")
-        )
-        fig_categories = px.bar(
-            cat_counts,
-            x="Effort",
-            y="Part",
-            text="Part",
-            title="Répartition des recettes par niveau d'effort",
-            template="plotly_white",
-        )
-        fig_categories.update_traces(texttemplate="%{text:.0%}", textposition="outside")
-        fig_categories.update_yaxes(tickformat=".0%")
-        _plotly_display(fig_categories, width="stretch")
+        if "effort_category" in data.columns:
+            effort_order = ["Très Facile", "Facile", "Modéré", "Difficile", "Très Difficile"]
+            cat_counts = (
+                data["effort_category"]
+                .value_counts(normalize=True)
+                .rename_axis("Effort")
+                .reset_index(name="Part")
+            )
+            order_mapping = {label: idx for idx, label in enumerate(effort_order)}
+            cat_counts = cat_counts.sort_values(
+                by="Effort",
+                key=lambda series: series.map(order_mapping).fillna(len(order_mapping)),
+            )
+            fig_categories = px.bar(
+                cat_counts,
+                x="Effort",
+                y="Part",
+                text="Part",
+                title="Répartition des recettes par niveau d'effort",
+                template="plotly_white",
+            )
+            fig_categories.update_traces(texttemplate="%{text:.0%}", textposition="outside")
+            fig_categories.update_yaxes(tickformat=".0%")
+            _plotly_display(fig_categories, width="stretch")
 
     # Encart d'descriptif
     with st.container():
@@ -1004,7 +1106,14 @@ def _render_explorer(data: pd.DataFrame) -> None:
 
 
 def _render_scenario_planner(data: pd.DataFrame) -> None:
-    """Assistant interactif pour trouver une recette selon ses contraintes."""
+    """
+    Propose un assistant interactif pour identifier des recettes respectant des contraintes.
+
+    :param data: Dataset filtré contenant au minimum ``minutes``, ``n_ingredients`` et ``bayes_mean``.
+    :type data: pd.DataFrame
+    :returns: ``None``.
+    :rtype: None
+    """
     required_cols = {"minutes", "n_ingredients", "bayes_mean"}
     st.write(
         "Définissez vos contraintes et découvrez les recettes qui tiennent la promesse "
@@ -1145,9 +1254,11 @@ def display_about_tab() -> None:
     """
     Affiche le contenu de l'onglet "À propos".
 
-    Notes
-    -----
-    Charge le fichier rapport_analyse_effort_popularite.md ou affiche des informations par défaut.
+    :returns: ``None``.
+    :rtype: None
+
+    .. note::
+       Charge le fichier ``rapport_analyse_effort_popularite.md`` ou affiche des informations par défaut.
     """
     logger.debug("Chargement de l'onglet À propos")
 
@@ -1158,7 +1269,14 @@ def display_about_tab() -> None:
         rapport_content = rapport_path.read_text(encoding="utf-8")
 
         def replace_local_images(match: re.Match[str]) -> str:
-            """Remplace les images locales par un encodage base64 embarqué."""
+            """
+            Remplace un lien d'image locale par une version encodée en base64.
+
+            :param match: Résultat de la correspondance regex sur un lien d'image.
+            :type match: re.Match[str]
+            :returns: Lien Markdown mis à jour (ou original si l'image est introuvable).
+            :rtype: str
+            """
             img_path = images_dir / match.group(1)
             if img_path.exists():
                 data = base64.b64encode(img_path.read_bytes()).decode()
@@ -1189,7 +1307,18 @@ def display_about_tab() -> None:
 
 
 def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int) -> None:
-    """Déroulé narratif principal adapté à un public non spécialiste."""
+    """
+    Orchestre le storytelling principal destiné à un public non spécialiste.
+
+    :param data: Jeu de données filtré actuel.
+    :type data: pd.DataFrame
+    :param data_origin: Indique si les données sont ``"réelles"`` ou ``"simulées"``.
+    :type data_origin: str
+    :param total_recipes: Nombre total de recettes disponibles avant filtrage.
+    :type total_recipes: int
+    :returns: ``None``.
+    :rtype: None
+    """
     if data.empty:
         st.warning(
             "Aucune recette ne correspond aux filtres sélectionnés dans la barre latérale."
@@ -1366,6 +1495,12 @@ def render_storytelling(data: pd.DataFrame, data_origin: str, total_recipes: int
 
 
 def main() -> None:
+    """
+    Point d'entrée de la webapp Streamlit.
+
+    :returns: ``None``.
+    :rtype: None
+    """
     _configure_streamlit()
     analysis_df, data_origin = _prepare_analysis_data()
 
