@@ -111,6 +111,9 @@ jobs:
         run: |
           uv run pytest --cov=src --cov-report=xml --cov-report=html --junitxml=pytest-report.xml --cov-fail-under=20
 
+      - name: Generate badge data
+        run: uv run python scripts/generate_badges.py --output badges
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -126,6 +129,13 @@ jobs:
         with:
           name: junit-report
           path: pytest-report.xml
+
+      - name: Upload badge data
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: badges
+          path: badges/
 
   build-docs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -174,6 +184,17 @@ jobs:
         with:
           name: docs-html
           path: docs/build/html
+
+      - name: Download badge artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: badges
+          path: badges
+
+      - name: Inject badges into site
+        run: |
+          mkdir -p docs/build/html/badges
+          cp badges/*.json docs/build/html/badges/ || true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

@@ -7,17 +7,23 @@
 <p align="center"><strong>Analyser comment l’effort culinaire façonne la popularité des recettes Food.com</strong></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Docker-GHCR.io-0db7ed?logo=docker&logoColor=white" alt="Images Docker">
-  <img src="https://img.shields.io/badge/Docs-GitHub%20Pages-327FC7?logo=github" alt="Documentation GitHub Pages">
   <a href="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/ci.yml">
     <img src="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI/CD Pipeline">
   </a>
-  <img src="https://img.shields.io/badge/Tests-108%20passed-2ea44f?logo=pytest" alt="108 tests passés">
-  <img src="https://img.shields.io/badge/Couverture-94%25-22c55e" alt="Couverture 94%">
   <a href="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/dependencies.yml">
     <img src="https://github.com/TelecomParis-MSData25/mangetamain/actions/workflows/dependencies.yml/badge.svg?branch=main" alt="Maintenance des dépendances">
   </a>
-  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
+  <a href="https://www.python.org/downloads/release/python-3120/">
+    <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
+  </a>
+  <a href="https://telecomparis-msdata25.github.io/mangetamain/">
+    <img src="https://img.shields.io/badge/Docs-GitHub%20Pages-327FC7?logo=github" alt="Documentation GitHub Pages">
+  </a>
+  <img src="https://img.shields.io/endpoint?url=https://telecomparis-msdata25.github.io/mangetamain/badges/tests.json&logo=pytest&logoColor=white" alt="Statut des tests">
+  <img src="https://img.shields.io/endpoint?url=https://telecomparis-msdata25.github.io/mangetamain/badges/coverage.json&logo=codecov&logoColor=white" alt="Couverture du code">
+  <a href="https://github.com/orgs/TelecomParis-MSData25/packages?repo_name=mangetamain">
+    <img src="https://img.shields.io/badge/Docker-GHCR.io-0db7ed?logo=docker&logoColor=white" alt="Images Docker">
+  </a>
 </p>
 
 ---
@@ -149,6 +155,7 @@ open docs/build/html/index.html  # ou xdg-open sous Linux
 - **Tests unitaires & intégration** : `uv run pytest -v`.
 - **Couverture** : `uv run pytest --cov=src --cov-report=term-missing --cov-report=html`.
 - **Sécurité locale** (optionnel) : `uv run safety check`, `uv run bandit -r src`.
+- Les badges tests/couverture du README sont générés automatiquement par la CI (`scripts/generate_badges.py`) puis publiés sur GitHub Pages.
 
 Les rapports HTML sont générés dans `htmlcov/`, et la CI publie les mêmes artefacts pour chaque exécution.
 
