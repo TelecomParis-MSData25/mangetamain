@@ -1,5 +1,5 @@
 # Base image with Python 3.12 slim
-FROM python:3.12-slim AS app
+FROM python:3.14-slim AS app
 
 # Set environment variables for Python and uv package manager
 ENV PYTHONUNBUFFERED=1 \
