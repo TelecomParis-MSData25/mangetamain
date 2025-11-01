@@ -59,7 +59,7 @@ jobs:
         run: uv run sphinx-build -b html docs/source docs/build/html
 
       - name: Upload coverage and test reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: pr-test-artifacts
@@ -115,7 +115,7 @@ jobs:
         run: uv run python scripts/generate_badges.py --output badges
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: coverage-html
@@ -124,14 +124,14 @@ jobs:
             coverage.xml
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: junit-report
           path: pytest-report.xml
 
       - name: Upload badge data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: success()
         with:
           name: badges
@@ -160,7 +160,7 @@ jobs:
         run: uv run sphinx-build -b html docs/source docs/build/html
 
       - name: Upload docs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: docs-html
           path: docs/build/html
